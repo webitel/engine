@@ -1144,3 +1144,31 @@ where user_id = :UserId and name = 'timezone'), '')`, map[string]interface{}{
 
 	return tz, nil
 }
+
+// EmailTransferCandidates reads cc_email_transfer_candidates of call_center, which keeps its rules
+// in one place; the transfer checks them again under its locks.
+func (s SqlMemberStore) EmailTransferCandidates(ctx context.Context, domainId, attemptId int64, agentId int32) ([]*model.EmailTransferCandidate, model.AppError) {
+	var res []*model.EmailTransferCandidate
+	_, err := s.GetMaster().WithContext(ctx).Select(&res, `select c.agent_id, c.user_id,
+    coalesce(nullif(u.name, ''), u.username::text, '') as name, c.online, c.slot_type, c.available
+from call_center.cc_email_transfer_candidates(:DomainId::int8, :AttemptId::int8, :AgentId::int4) c
+    left join directory.wbt_user u on u.id = c.user_id and u.dc = :DomainId::int8
+order by c.available desc, name, c.agent_id`, map[string]any{
+		"DomainId":  domainId,
+		"AttemptId": attemptId,
+		"AgentId":   agentId,
+	})
+	if err != nil {
+		if e, ok := err.(*pq.Error); ok {
+			switch e.Code {
+			case "EMANF":
+				return nil, model.NewNotFoundError("cc.email_attempt.not_found", "active attempt not found")
+			case "EMAOW":
+				return nil, model.NewBadRequestError("cc.email_attempt.owner_mismatch", "the attempt is not assigned to the agent")
+			}
+		}
+		return nil, model.NewCustomCodeError("store.sql_member.email_transfer_candidates.app_error", err.Error(), http.StatusInternalServerError)
+	}
+
+	return res, nil
+}

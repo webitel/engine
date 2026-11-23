@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	ccclient "github.com/webitel/engine/app/cc"
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
 )
@@ -29,67 +30,118 @@ func (app *App) EmailTransferCandidates(ctx context.Context, domainId, attemptId
 	return app.Store.Member().EmailTransferCandidates(ctx, domainId, attemptId, agentId)
 }
 
+// emailOperation is the session and operator data shared by the Email attempt commands.
+type emailOperation struct {
+	member   ccclient.MemberApi
+	domainId int64
+	userId   int64
+	agentId  int32
+	operator *cc.EmailAttemptOperator
+	cmd      *model.EmailAttemptCommand
+}
+
+// emailOperationHandler sends one Email attempt command to its call_center RPC.
+type emailOperationHandler func(ctx context.Context, o *emailOperation) (*model.EmailAttemptResult, model.AppError)
+
+var emailOperationHandlers = map[string]emailOperationHandler{
+	model.EmailAttemptTake:     emailAttemptTake,
+	model.EmailAttemptPostpone: emailAttemptPostpone,
+	model.EmailAttemptReturn:   emailAttemptReturn,
+	model.EmailAttemptComplete: emailAttemptComplete,
+	model.EmailAttemptResume:   emailAttemptResume,
+	model.EmailAttemptRenew:    emailAttemptRenew,
+	model.EmailAttemptTransfer: emailAttemptTransfer,
+}
+
 // EmailAttemptCommand sends the command of the operator to call_center, which checks the owner,
 // version and repeat; userId and agentId come from the session.
 func (app *App) EmailAttemptCommand(ctx context.Context, domainId, userId int64, agentId int32, cmd *model.EmailAttemptCommand) (*model.EmailAttemptResult, model.AppError) {
+	handler, ok := emailOperationHandlers[cmd.Op]
+	if !ok {
+		return nil, model.NewBadRequestError("engine.email_attempt.invalid_argument", "unknown operation")
+	}
+
 	timeout := defaultEmailCommandTimeout
-	if sec := app.Config().EmailCommandTimeout; sec > 0 {
+	if sec := app.Config().EmailSettings.EmailCommandTimeout; sec > 0 {
 		timeout = time.Duration(sec) * time.Second
 	}
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	version := cmd.ExpectedVersion
-	op := &cc.EmailAttemptOperator{AttemptId: cmd.AttemptId, AgentId: agentId, ExpectedVersion: &version,
-		CommandId: cmd.CommandId, UserId: userId}
-	member := app.cc.Member()
+	return handler(ctx, &emailOperation{
+		member:   app.cc.Member(),
+		domainId: domainId,
+		userId:   userId,
+		agentId:  agentId,
+		operator: &cc.EmailAttemptOperator{AttemptId: cmd.AttemptId, AgentId: agentId,
+			ExpectedVersion: model.NewInt64(cmd.ExpectedVersion), CommandId: cmd.CommandId, UserId: userId},
+		cmd: cmd,
+	})
+}
 
-	var res *cc.EmailAttemptResponse
-	var err error
-	switch cmd.Op {
-	case model.EmailAttemptTake:
-		res, err = member.EmailAttemptTake(ctx, &cc.EmailAttemptTakeRequest{DomainId: domainId, ThreadId: cmd.ThreadId, Operator: op})
-	case model.EmailAttemptPostpone:
-		in := &cc.EmailAttemptPostponeRequest{DomainId: domainId, ThreadId: cmd.ThreadId,
-			Caller: &cc.EmailAttemptPostponeRequest_Operator{Operator: op}}
-		if cmd.PostponedUntil > 0 {
-			in.Deadline = &cc.EmailAttemptPostponeRequest_PostponedUntil{PostponedUntil: cmd.PostponedUntil}
-		} else {
-			in.Deadline = &cc.EmailAttemptPostponeRequest_PostponeForSec{PostponeForSec: cmd.PostponeForSec}
-		}
-		res, err = member.EmailAttemptPostpone(ctx, in)
-	case model.EmailAttemptReturn:
-		res, err = member.EmailAttemptReturn(ctx, &cc.EmailAttemptReturnRequest{DomainId: domainId, ThreadId: cmd.ThreadId,
-			Operator: op, Reason: cmd.Reason})
-	case model.EmailAttemptComplete:
-		res, err = member.EmailAttemptComplete(ctx, &cc.EmailAttemptCompleteRequest{DomainId: domainId, ThreadId: cmd.ThreadId, Operator: op})
-	case model.EmailAttemptResume:
-		var out *cc.ResumeAttemptResponse
-		out, err = member.EmailAttemptResume(ctx, &cc.ResumeAttemptRequest{DomainId: domainId, AttemptId: cmd.AttemptId,
-			ThreadId: cmd.ThreadId, AgentId: agentId, ExpectedVersion: &version, CommandId: cmd.CommandId, UserId: userId})
-		res = out.GetEmail()
-	case model.EmailAttemptRenew:
-		var out *cc.AttemptRenewalResultResponse
-		out, err = member.EmailAttemptRenew(ctx, &cc.AttemptRenewalResultRequest{DomainId: domainId, AttemptId: cmd.AttemptId,
-			Renewal: cmd.RenewalSec, ThreadId: cmd.ThreadId, AgentId: agentId, ExpectedVersion: &version,
-			CommandId: cmd.CommandId, UserId: userId})
-		res = out.GetEmail()
-	case model.EmailAttemptTransfer:
-		var out *cc.TransferResponse
-		out, err = member.EmailAttemptTransfer(ctx, &cc.TransferRequest{DomainId: domainId, AttemptId: cmd.AttemptId,
-			AgentId: cmd.ToAgentId, QueueId: cmd.ToQueueId, ThreadId: cmd.ThreadId, Operator: op, Comment: cmd.Comment})
-		if err == nil {
-			if out.GetEmail() == nil || out.GetTransferredTo() == nil {
-				return nil, model.NewInternalError("engine.email_attempt.internal", "call_center returned an incomplete transfer")
-			}
-			return &model.EmailAttemptResult{Email: emailAttemptState(out.GetEmail()),
-				TransferredTo: emailAttemptState(out.GetTransferredTo())}, nil
-		}
-	default:
-		return nil, model.NewBadRequestError("engine.email_attempt.invalid_argument", "unknown operation")
+func emailAttemptTake(ctx context.Context, o *emailOperation) (*model.EmailAttemptResult, model.AppError) {
+	res, err := o.member.EmailAttemptTake(ctx, &cc.EmailAttemptTakeRequest{DomainId: o.domainId, ThreadId: o.cmd.ThreadId,
+		Operator: o.operator})
+	return emailAttemptResult(res, err)
+}
+
+func emailAttemptPostpone(ctx context.Context, o *emailOperation) (*model.EmailAttemptResult, model.AppError) {
+	in := &cc.EmailAttemptPostponeRequest{DomainId: o.domainId, ThreadId: o.cmd.ThreadId,
+		Caller: &cc.EmailAttemptPostponeRequest_Operator{Operator: o.operator}}
+	if o.cmd.PostponedUntil > 0 {
+		in.Deadline = &cc.EmailAttemptPostponeRequest_PostponedUntil{PostponedUntil: o.cmd.PostponedUntil}
+	} else {
+		in.Deadline = &cc.EmailAttemptPostponeRequest_PostponeForSec{PostponeForSec: o.cmd.PostponeForSec}
 	}
+	res, err := o.member.EmailAttemptPostpone(ctx, in)
+	return emailAttemptResult(res, err)
+}
+
+func emailAttemptReturn(ctx context.Context, o *emailOperation) (*model.EmailAttemptResult, model.AppError) {
+	res, err := o.member.EmailAttemptReturn(ctx, &cc.EmailAttemptReturnRequest{DomainId: o.domainId, ThreadId: o.cmd.ThreadId,
+		Operator: o.operator, Reason: o.cmd.Reason})
+	return emailAttemptResult(res, err)
+}
+
+func emailAttemptComplete(ctx context.Context, o *emailOperation) (*model.EmailAttemptResult, model.AppError) {
+	res, err := o.member.EmailAttemptComplete(ctx, &cc.EmailAttemptCompleteRequest{DomainId: o.domainId, ThreadId: o.cmd.ThreadId,
+		Operator: o.operator})
+	return emailAttemptResult(res, err)
+}
+
+func emailAttemptResume(ctx context.Context, o *emailOperation) (*model.EmailAttemptResult, model.AppError) {
+	out, err := o.member.EmailAttemptResume(ctx, &cc.ResumeAttemptRequest{DomainId: o.domainId, AttemptId: o.cmd.AttemptId,
+		ThreadId: o.cmd.ThreadId, AgentId: o.agentId, ExpectedVersion: model.NewInt64(o.cmd.ExpectedVersion),
+		CommandId: o.cmd.CommandId, UserId: o.userId})
+	return emailAttemptResult(out.GetEmail(), err)
+}
+
+func emailAttemptRenew(ctx context.Context, o *emailOperation) (*model.EmailAttemptResult, model.AppError) {
+	out, err := o.member.EmailAttemptRenew(ctx, &cc.AttemptRenewalResultRequest{DomainId: o.domainId, AttemptId: o.cmd.AttemptId,
+		Renewal: o.cmd.RenewalSec, ThreadId: o.cmd.ThreadId, AgentId: o.agentId, ExpectedVersion: model.NewInt64(o.cmd.ExpectedVersion),
+		CommandId: o.cmd.CommandId, UserId: o.userId})
+	return emailAttemptResult(out.GetEmail(), err)
+}
+
+// emailAttemptTransfer returns both the transferred attempt and the attempt it ended up in.
+func emailAttemptTransfer(ctx context.Context, o *emailOperation) (*model.EmailAttemptResult, model.AppError) {
+	out, err := o.member.EmailAttemptTransfer(ctx, &cc.TransferRequest{DomainId: o.domainId, AttemptId: o.cmd.AttemptId,
+		AgentId: o.cmd.ToAgentId, QueueId: o.cmd.ToQueueId, ThreadId: o.cmd.ThreadId, Operator: o.operator, Comment: o.cmd.Comment})
 	if err != nil {
-		return nil, emailGrpcError(ctx, err)
+		return nil, err
+	}
+	if out.GetEmail() == nil || out.GetTransferredTo() == nil {
+		return nil, model.NewInternalError("engine.email_attempt.internal", "call_center returned an incomplete transfer")
+	}
+
+	return &model.EmailAttemptResult{Email: emailAttemptState(out.GetEmail()),
+		TransferredTo: emailAttemptState(out.GetTransferredTo())}, nil
+}
+
+// emailAttemptResult is the result of a command that returns one Email attempt.
+func emailAttemptResult(res *cc.EmailAttemptResponse, err model.AppError) (*model.EmailAttemptResult, model.AppError) {
+	if err != nil {
+		return nil, err
 	}
 	if res == nil {
 		return nil, model.NewInternalError("engine.email_attempt.internal", "call_center returned no Email attempt")

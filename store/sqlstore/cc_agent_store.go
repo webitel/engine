@@ -1418,3 +1418,22 @@ func (s SqlAgentStore) UsersStatusByGroup(ctx context.Context, domainId int64, g
 
 	return users, nil
 }
+
+// EmailAgentIdByUser finds the agent of the user without its channels; nil means none.
+func (s SqlAgentStore) EmailAgentIdByUser(ctx context.Context, domainId, userId int64) (*int32, model.AppError) {
+	id, err := s.GetMaster().WithContext(ctx).SelectNullInt(`select a.id
+from call_center.cc_agent a
+where a.domain_id = :DomainId::int8 and a.user_id = :UserId::int8`, map[string]any{
+		"DomainId": domainId,
+		"UserId":   userId,
+	})
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_agent.email_agent_by_user.app_error", err.Error(), extractCodeFromErr(err))
+	}
+	if !id.Valid {
+		return nil, nil
+	}
+	agentId := int32(id.Int64)
+
+	return &agentId, nil
+}

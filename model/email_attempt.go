@@ -63,8 +63,8 @@ type EmailTransferCandidate struct {
 	Available bool    `json:"available" db:"available"`
 }
 
-func (s *EmailAttemptState) ToMap() map[string]interface{} {
-	return map[string]interface{}{
+func (s *EmailAttemptState) ToMap() map[string]any {
+	return map[string]any{
 		"attempt_id":         s.AttemptId,
 		"thread_id":          s.ThreadId,
 		"state":              s.State,

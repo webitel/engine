@@ -12,9 +12,9 @@ The WebSocket part waits for confirmation by Workspace.
 
 ## Email commands — EM-25
 
-Workspace sends the Email attempt commands of an operator over WebSocket:
-`cc_email_take`, `cc_email_postpone`, `cc_email_resume`, `cc_email_return`,
-`cc_email_complete`, `cc_email_renew` and `cc_email_transfer`, each with
+Workspace sends the Email attempt commands of an operator over WebSocket in
+one action, `cc_email_attempt`, with `operation`: `take`, `postpone`, `resume`,
+`return`, `complete`, `renew` or `transfer`. Each command has
 `thread_id`, `attempt_id`, `expected_version` and a UUID `command_id` (the same
 id for a repeat of the same intent). Postpone adds `postponed_until` (Unix ms) or
 `postpone_for_sec`, Renew `renewal_sec`, Return a `reason` (1–500 characters),
