@@ -16,6 +16,10 @@ func (a *App) GetQuickReplyPage(ctx context.Context, domainId int64, search *mod
 		list []*model.QuickReply
 		err model.AppError
 	)
+
+	if !model.IsValidQuickReplyChannel(search.Channel) {
+		return nil, false, model.NewQuickReplyChannelError(search.Channel)
+	}
 	
 	if strings.Contains(search.Sort, AGENT_PRIORITY_SORT) {
 		list, err = a.Store.QuickReply().GetAllPageByAgentPriority(ctx, domainId, int64(userId), search)
@@ -32,6 +36,17 @@ func (a *App) GetQuickReplyPage(ctx context.Context, domainId int64, search *mod
 }
 
 func (a *App) CreateQuickReply(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
+	if !model.IsValidQuickReplyChannel(reply.Channel) {
+		return nil, model.NewQuickReplyChannelError(reply.Channel)
+	}
+	if reply.IsEmail() {
+		if err := reply.PrepareEmail(); err != nil {
+			return nil, err
+		}
+	} else {
+		reply.Html = ""
+	}
+
 	return a.Store.QuickReply().Create(ctx, domainId, reply)
 }
 
@@ -53,6 +68,12 @@ func (a *App) UpdateQuickReply(ctx context.Context, domainId int64, reply *model
 	oldReply.Queues = reply.Queues
 	oldReply.Teams = reply.Teams
 	oldReply.Article = reply.Article
+	if oldReply.IsEmail() {
+		oldReply.Html = reply.Html
+		if err = oldReply.PrepareEmail(); err != nil {
+			return nil, err
+		}
+	}
 
 	oldReply, err = a.Store.QuickReply().Update(ctx, domainId, oldReply)
 	if err != nil {
@@ -66,6 +87,18 @@ func (a *App) PatchQuickReply(ctx context.Context, domainId int64, id uint32, pa
 	oldReply, err := a.GetQuickReply(ctx, domainId, id)
 	if err != nil {
 		return nil, err
+	}
+
+	if oldReply.IsEmail() {
+		// The whole reply is validated, only the fields of the mask are written.
+		fields, err := oldReply.PatchEmail(patch)
+		if err != nil {
+			return nil, err
+		}
+		if err = oldReply.PrepareEmail(); err != nil {
+			return nil, err
+		}
+		return a.Store.QuickReply().PatchEmail(ctx, domainId, oldReply, fields)
 	}
 
 	oldReply.Patch(patch)

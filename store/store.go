@@ -474,6 +474,7 @@ type QuickReplyStore interface {
 	Get(ctx context.Context, domainId int64, id uint32) (*model.QuickReply, model.AppError)
 	Update(ctx context.Context, domainId int64, region *model.QuickReply) (*model.QuickReply, model.AppError)
 	Delete(ctx context.Context, domainId int64, id uint32) model.AppError
+	PatchEmail(ctx context.Context, domainId int64, reply *model.QuickReply, fields map[string]bool) (*model.QuickReply, model.AppError)
 }
 
 type ChatPlanStore interface {
