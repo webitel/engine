@@ -3,9 +3,10 @@ package wsapi
 import (
 	"context"
 	"math"
-	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/pborman/uuid"
 
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
@@ -13,22 +14,22 @@ import (
 
 const maxEmailCommentLen = 500
 
-var emailCommandIdRe = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
-
 // InitEmail registers the Email attempt commands of an operator.
 func (api *API) InitEmail() {
-	for _, op := range []string{model.EmailAttemptTake, model.EmailAttemptPostpone, model.EmailAttemptResume,
-		model.EmailAttemptReturn, model.EmailAttemptComplete, model.EmailAttemptRenew, model.EmailAttemptTransfer} {
-		op := op
-		api.Router.Handle("cc_email_"+op, api.ApiWebSocketHandler(func(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-			return api.emailAttemptCommand(ctx, conn, req, op)
-		}))
-	}
+	api.Router.Handle("cc_email_attempt", api.ApiWebSocketHandler(api.emailAttemptCommand))
 	api.Router.Handle("cc_email_transfer_agents", api.ApiWebSocketHandler(api.emailTransferAgents))
 }
 
 // The handlers check req.Session, read for this request, never the session cached in the connection.
-func (api *API) emailAttemptCommand(ctx context.Context, _ *app.WebConn, req *model.WebSocketRequest, op string) (map[string]interface{}, model.AppError) {
+// The operation comes in the request and is checked before the rights and the agent.
+func (api *API) emailAttemptCommand(ctx context.Context, _ *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	op, _ := req.Data["operation"].(string)
+	switch op {
+	case model.EmailAttemptTake, model.EmailAttemptPostpone, model.EmailAttemptResume, model.EmailAttemptReturn,
+		model.EmailAttemptComplete, model.EmailAttemptRenew, model.EmailAttemptTransfer:
+	default:
+		return nil, NewInvalidWebSocketParamError(req.Action, "operation")
+	}
 	cmd, err := emailCommandFromRequest(req, op)
 	if err != nil {
 		return nil, err
@@ -39,13 +40,13 @@ func (api *API) emailAttemptCommand(ctx context.Context, _ *app.WebConn, req *mo
 		return nil, err
 	}
 	if res.TransferredTo != nil {
-		return map[string]interface{}{"email": res.Email.ToMap(), "transferred_to": res.TransferredTo.ToMap()}, nil
+		return map[string]any{"email": res.Email.ToMap(), "transferred_to": res.TransferredTo.ToMap()}, nil
 	}
 
 	return res.Email.ToMap(), nil
 }
 
-func (api *API) emailTransferAgents(ctx context.Context, _ *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) emailTransferAgents(ctx context.Context, _ *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
 	attemptId, ok := emailPositive(req.Data, "attempt_id", math.MaxInt64)
 	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
@@ -56,7 +57,7 @@ func (api *API) emailTransferAgents(ctx context.Context, _ *app.WebConn, req *mo
 		return nil, err
 	}
 
-	return map[string]interface{}{"items": agents}, nil
+	return map[string]any{"items": agents}, nil
 }
 
 // emailCommandFromRequest validates the parameters of the client; the domain, the user and the agent
@@ -78,7 +79,8 @@ func emailCommandFromRequest(req *model.WebSocketRequest, op string) (*model.Ema
 	if cmd.ExpectedVersion, ok = emailInteger(d, "expected_version", 0, math.MaxInt64); !ok {
 		return invalid("expected_version")
 	}
-	if cmd.CommandId, ok = d["command_id"].(string); !ok || !emailCommandIdRe.MatchString(cmd.CommandId) {
+	if cmd.CommandId, ok = d["command_id"].(string); !ok ||
+		len(cmd.CommandId) != 36 || uuid.Parse(cmd.CommandId) == nil {
 		return invalid("command_id")
 	}
 
@@ -116,7 +118,7 @@ func emailCommandFromRequest(req *model.WebSocketRequest, op string) (*model.Ema
 }
 
 // emailInteger reads a whole JSON number within [min, max]; JSON numbers are exact up to 2^53.
-func emailInteger(d map[string]interface{}, name string, min, max int64) (int64, bool) {
+func emailInteger(d map[string]any, name string, min, max int64) (int64, bool) {
 	v, ok := d[name].(float64)
 	if !ok || v != math.Trunc(v) || math.Abs(v) > 1<<53 || v < float64(min) || v > float64(max) {
 		return 0, false
@@ -125,12 +127,12 @@ func emailInteger(d map[string]interface{}, name string, min, max int64) (int64,
 	return int64(v), true
 }
 
-func emailPositive(d map[string]interface{}, name string, max int64) (int64, bool) {
+func emailPositive(d map[string]any, name string, max int64) (int64, bool) {
 	return emailInteger(d, name, 1, max)
 }
 
 // emailText trims a reason or a comment: up to maxEmailCommentLen characters, present when required.
-func emailText(d map[string]interface{}, name string, required bool) (string, bool) {
+func emailText(d map[string]any, name string, required bool) (string, bool) {
 	raw, present := d[name]
 	if !present || raw == nil {
 		return "", !required

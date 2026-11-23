@@ -44,14 +44,15 @@ type MemberApi interface {
 	TransferAttempt(ctx context.Context, domainId int64, attemptId int64, agentId, queueId int32) error
 	ResumeAttempt(ctx context.Context, attemptId int64, domainId int64) error
 
-	// Email commands of an operator; errors are the gRPC status of call_center.
-	EmailAttemptTake(ctx context.Context, in *cc.EmailAttemptTakeRequest) (*cc.EmailAttemptResponse, error)
-	EmailAttemptPostpone(ctx context.Context, in *cc.EmailAttemptPostponeRequest) (*cc.EmailAttemptResponse, error)
-	EmailAttemptReturn(ctx context.Context, in *cc.EmailAttemptReturnRequest) (*cc.EmailAttemptResponse, error)
-	EmailAttemptComplete(ctx context.Context, in *cc.EmailAttemptCompleteRequest) (*cc.EmailAttemptResponse, error)
-	EmailAttemptResume(ctx context.Context, in *cc.ResumeAttemptRequest) (*cc.ResumeAttemptResponse, error)
-	EmailAttemptRenew(ctx context.Context, in *cc.AttemptRenewalResultRequest) (*cc.AttemptRenewalResultResponse, error)
-	EmailAttemptTransfer(ctx context.Context, in *cc.TransferRequest) (*cc.TransferResponse, error)
+	// Email commands of an operator; errors are model.AppError mapped from the call_center status
+	// with its stable id and an HTTP code.
+	EmailAttemptTake(ctx context.Context, in *cc.EmailAttemptTakeRequest) (*cc.EmailAttemptResponse, model.AppError)
+	EmailAttemptPostpone(ctx context.Context, in *cc.EmailAttemptPostponeRequest) (*cc.EmailAttemptResponse, model.AppError)
+	EmailAttemptReturn(ctx context.Context, in *cc.EmailAttemptReturnRequest) (*cc.EmailAttemptResponse, model.AppError)
+	EmailAttemptComplete(ctx context.Context, in *cc.EmailAttemptCompleteRequest) (*cc.EmailAttemptResponse, model.AppError)
+	EmailAttemptResume(ctx context.Context, in *cc.ResumeAttemptRequest) (*cc.ResumeAttemptResponse, model.AppError)
+	EmailAttemptRenew(ctx context.Context, in *cc.AttemptRenewalResultRequest) (*cc.AttemptRenewalResultResponse, model.AppError)
+	EmailAttemptTransfer(ctx context.Context, in *cc.TransferRequest) (*cc.TransferResponse, model.AppError)
 }
 
 type CCManager interface {
