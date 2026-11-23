@@ -33,5 +33,5 @@ func (c *Controller) CreateOutboundResourceDisplays(ctx context.Context, resourc
 		}
 	}
 
-	return c.app.CreateOutboundResourceDisplays(ctx, resourceID, displays)
+	return c.app.CreateOutboundResourceDisplays(ctx, resourceID, session.Domain(0), displays)
 }
