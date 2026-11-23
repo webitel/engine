@@ -56,7 +56,7 @@ func (s *SqlAuditRateStore) Create(ctx context.Context, domainId int64, rate *mo
     insert into call_center.cc_audit_rate (domain_id, form_id, created_at, created_by, updated_at, updated_by, answers, score_required, score_optional,
 		comment, call_id, call_root_id, conversation_id, call_created_at, rated_user_id, select_yes_count, critical_count)
     values (:DomainId, :FormId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Answers, :ScoreRequired, :ScoreOptional,
-		:Comment, :CallId, call_center.cc_call_root_id(:CallId::uuid), :ConversationId, :CallCreatedAt, :RatedUserId, :SelectYesCount, :CriticalCount)
+		:Comment, :CallId, (select r.id from call_center.cc_call_root(:CallId::uuid, :CallCreatedAt::timestamptz) r), :ConversationId, :CallCreatedAt, :RatedUserId, :SelectYesCount, :CriticalCount)
     returning *
 )
 select r.id,
@@ -343,14 +343,14 @@ func (s *SqlAuditRateStore) ValidateCallRate(ctx context.Context, domainId int64
        a.call_id notnull                                                              as allowed,
        exists (select 1
                from call_center.cc_audit_rate ar
-               where (ar.call_root_id = r.root_id or ar.call_id = c.id::text)
+               where (ar.call_root_id = r.id or ar.call_id = c.id::text)
                  and (ar.call_id = c.id::text or ar.rated_user_id = a.user_id))        as rated
 from call_center.cc_calls_history c
     left join call_center.cc_queue q on q.id = c.queue_id
     left join call_center.cc_calls_history p on p.id = c.bridged_id
-    cross join lateral (select call_center.cc_call_root_id(c.id) as root_id) r
+    cross join lateral call_center.cc_call_root(c.id, c.created_at) r
     left join lateral (select e.call_id, e.user_id
-                       from call_center.cc_call_evaluation_agents(r.root_id) e
+                       from call_center.cc_call_evaluation_agents(r.id, r.created_at) e
                        where e.call_id = c.id) a on true
 where c.id = :CallId::uuid and c.domain_id = :DomainId::int8`, map[string]any{
 		"CallId":   callId,
