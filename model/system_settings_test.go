@@ -9,7 +9,7 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func TestSystemSetting_IsValid_RecordAllCalls(t *testing.T) {
+func TestSystemSetting_IsValid_BoolSettings(t *testing.T) {
 	cases := []struct {
 		name    string
 		value   json.RawMessage
@@ -21,19 +21,21 @@ func TestSystemSetting_IsValid_RecordAllCalls(t *testing.T) {
 		{name: "number", value: json.RawMessage(`5`), wantErr: true},
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			s := &model.SystemSetting{Name: model.SysNameRecordAllCalls, Value: tc.value}
-			err := s.IsValid()
+	for _, setting := range []string{model.SysNameRecordAllCalls, model.SysNameAllowDesktracking} {
+		for _, tc := range cases {
+			t.Run(setting+"/"+tc.name, func(t *testing.T) {
+				s := &model.SystemSetting{Name: setting, Value: tc.value}
+				err := s.IsValid()
 
-			if tc.wantErr && err == nil {
-				t.Fatalf("expected error for value %s, got nil", tc.value)
-			}
+				if tc.wantErr && err == nil {
+					t.Fatalf("expected error for value %s, got nil", tc.value)
+				}
 
-			if !tc.wantErr && err != nil {
-				t.Fatalf("expected no error for value %s, got %v", tc.value, err)
-			}
-		})
+				if !tc.wantErr && err != nil {
+					t.Fatalf("expected no error for value %s, got %v", tc.value, err)
+				}
+			})
+		}
 	}
 }
 

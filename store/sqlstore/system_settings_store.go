@@ -28,7 +28,7 @@ var allSystemSettings = []string{
 	model.SysNamePasswordMinLength, model.SysNamePasswordCategories, model.SysNamePasswordContainsLogin, model.SysNamePasswordWarningDays, model.SysNameDefaultPassword, model.SysNameExpandContactTabs,
 	model.SysNameDefaultWorkspaceTab, model.SysNameBlockAllMemberNumbers, model.SysNameLoginOptions, model.SysNameDefaultMembersFilter, model.SysNameSelfAssignedCallSoundNotification,
 	model.SysNameRecordAllCalls, model.SysNameAutoDeactivationPeriod, model.SysNameAutoDeletionPeriod,
-	model.SysNameMaxLoginAttempts, model.SysNameBlockLoginTime,
+	model.SysNameMaxLoginAttempts, model.SysNameBlockLoginTime, model.SysNameAllowDesktracking,
 }
 
 func NewSqlSystemSettingsStore(sqlStore SqlStore) store.SystemSettingsStore {
