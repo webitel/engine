@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"maps"
+	"math"
 	"strconv"
 )
 
@@ -18,6 +19,7 @@ const (
 	QueueTypeOutboundTask
 	QueueTypeInboundIM
 	QueueTypeOutboundCall
+	QueueTypeInboundEmail    int8 = 11
 )
 
 const (
@@ -29,6 +31,9 @@ const (
 	QueueDefaultProgressiveCountValue int = 1
 	QueueDefaultMaxAgentLine          int = 5
 )
+
+// QueuePayloadEmailAutoReleaseSecKey is the offer deadline of an Inbound Email Queue; 0 or unset turns it off.
+const QueuePayloadEmailAutoReleaseSecKey string = "email_auto_release_sec"
 
 type Queue struct {
 	DomainRecord
@@ -447,7 +452,35 @@ func (q *Queue) validateCalendar() AppError {
 		)
 	}
 
+	if q.Type == QueueTypeInboundEmail {
+		if v, ok := q.Payload[QueuePayloadEmailAutoReleaseSecKey]; ok && v != nil && !isPayloadSeconds(v) {
+			return NewBadRequestError("model.queue.valid.email_auto_release_sec",
+				"email_auto_release_sec must be an integer from 0 to 2147483647")
+		}
+	}
+
 	return nil
+}
+
+// isPayloadSeconds accepts a JSON number that is a whole value within the SQL integer range.
+func isPayloadSeconds(v any) bool {
+	var f float64
+	switch n := v.(type) {
+	case float64:
+		f = n
+	case float32:
+		f = float64(n)
+	case int:
+		f = float64(n)
+	case int32:
+		f = float64(n)
+	case int64:
+		f = float64(n)
+	default:
+		return false
+	}
+
+	return f >= 0 && f <= math.MaxInt32 && f == math.Trunc(f)
 }
 
 func (q *Queue) DncListId() *int64 {

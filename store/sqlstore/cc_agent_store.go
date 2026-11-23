@@ -94,9 +94,9 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
 	var out *model.Agent
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with a as (
 			insert into call_center.cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
-				allow_channels, chat_count, extra_chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count, screen_control, email_count, extra_email_count)
+				allow_channels, chat_count, extra_chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count, screen_control, email_count, extra_email_count, email_postponed_count)
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia,
-					:AllowChannels, :ChatCount, :ExtraChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount, :ScreenControl, :EmailCount, :ExtraEmailCount)
+					:AllowChannels, :ChatCount, :ExtraChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount, :ScreenControl, :EmailCount, :ExtraEmailCount, :EmailPostponedCount)
 			returning *
 		)
 	SELECT a.domain_id,
@@ -116,6 +116,7 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
        a.extra_chat_count,
 	   a.email_count,
 	   a.extra_email_count,
+	   a.email_postponed_count,
 	   a.task_count,
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
@@ -139,27 +140,28 @@ FROM a
                              FROM call_center.cc_agent_channel c
                              WHERE c.agent_id = a.id) ch ON true`,
 		map[string]any{
-			"UserId":           agent.User.Id,
-			"Description":      agent.Description,
-			"DomainId":         agent.DomainId,
-			"CreatedAt":        agent.CreatedAt,
-			"CreatedBy":        agent.CreatedBy.GetSafeId(),
-			"UpdatedAt":        agent.UpdatedAt,
-			"UpdatedBy":        agent.UpdatedBy.GetSafeId(),
-			"ProgressiveCount": agent.ProgressiveCount,
-			"GreetingMedia":    agent.GreetingMediaId(),
-			"AllowChannels":    pq.Array(agent.AllowChannels),
-			"ChatCount":        agent.ChatCount,
-			"ExtraChatCount":   agent.ExtraChatCount,
-			"EmailCount":       agent.EmailCount,
-			"ExtraEmailCount":  agent.ExtraEmailCount,
-			"SupervisorIds":    pq.Array(model.LookupIds(agent.Supervisor)),
-			"TeamId":           agent.Team.GetSafeId(),
-			"RegionId":         agent.Region.GetSafeId(),
-			"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
-			"Supervisor":       agent.IsSupervisor,
-			"TaskCount":        agent.TaskCount,
-			"ScreenControl":    agent.ScreenControl,
+			"UserId":              agent.User.Id,
+			"Description":         agent.Description,
+			"DomainId":            agent.DomainId,
+			"CreatedAt":           agent.CreatedAt,
+			"CreatedBy":           agent.CreatedBy.GetSafeId(),
+			"UpdatedAt":           agent.UpdatedAt,
+			"UpdatedBy":           agent.UpdatedBy.GetSafeId(),
+			"ProgressiveCount":    agent.ProgressiveCount,
+			"GreetingMedia":       agent.GreetingMediaId(),
+			"AllowChannels":       pq.Array(agent.AllowChannels),
+			"ChatCount":           agent.ChatCount,
+			"ExtraChatCount":      agent.ExtraChatCount,
+			"EmailCount":          agent.EmailCount,
+			"ExtraEmailCount":     agent.ExtraEmailCount,
+			"EmailPostponedCount": agent.EmailPostponedCount,
+			"SupervisorIds":       pq.Array(model.LookupIds(agent.Supervisor)),
+			"TeamId":              agent.Team.GetSafeId(),
+			"RegionId":            agent.Region.GetSafeId(),
+			"AuditorIds":          pq.Array(model.LookupIds(agent.Auditor)),
+			"Supervisor":          agent.IsSupervisor,
+			"TaskCount":           agent.TaskCount,
+			"ScreenControl":       agent.ScreenControl,
 		}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.save.app_error", fmt.Sprintf("%v", err.Error()), extractCodeFromErr(err))
 	} else {
@@ -369,6 +371,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId, id int64) (*model.Agen
 			   a.extra_chat_count,
 			   a.email_count,
 			   a.extra_email_count,
+	   a.email_postponed_count,
 			   a.task_count,
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
@@ -418,6 +421,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent, limits mo
 				extra_chat_count = :ExtraChatCount,
 				email_count = coalesce(:EmailCount::smallint, email_count),
 				extra_email_count = coalesce(:ExtraEmailCount::smallint, extra_email_count),
+				email_postponed_count = case when :NoPostponedLimit then null else coalesce(:EmailPostponedCount::smallint, email_postponed_count) end,
 				supervisor_ids = :SupervisorIds,
 				team_id = :TeamId,
 				region_id = :RegionId,
@@ -445,6 +449,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent, limits mo
 			   a.extra_chat_count,
 			   a.email_count,
 			   a.extra_email_count,
+	   a.email_postponed_count,
 			   a.task_count,
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
@@ -467,26 +472,28 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent, limits mo
                                                       (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
                              FROM call_center.cc_agent_channel c
                              WHERE c.agent_id = a.id) ch ON true`, map[string]any{
-		"UserId":           agent.User.Id,
-		"Description":      agent.Description,
-		"ProgressiveCount": agent.ProgressiveCount,
-		"Id":               agent.Id,
-		"DomainId":         agent.DomainId,
-		"UpdatedAt":        agent.UpdatedAt,
-		"UpdatedBy":        agent.UpdatedBy.GetSafeId(),
-		"GreetingMediaId":  agent.GreetingMediaId(),
-		"AllowChannels":    pq.Array(agent.AllowChannels),
-		"ChatCount":        agent.ChatCount,
-		"ExtraChatCount":   agent.ExtraChatCount,
-		"EmailCount":       limits.Base,
-		"ExtraEmailCount":  limits.Extra,
-		"SupervisorIds":    pq.Array(model.LookupIds(agent.Supervisor)),
-		"TeamId":           agent.Team.GetSafeId(),
-		"RegionId":         agent.Region.GetSafeId(),
-		"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
-		"Supervisor":       agent.IsSupervisor,
-		"TaskCount":        agent.TaskCount,
-		"ScreenControl":    agent.ScreenControl,
+		"UserId":              agent.User.Id,
+		"Description":         agent.Description,
+		"ProgressiveCount":    agent.ProgressiveCount,
+		"Id":                  agent.Id,
+		"DomainId":            agent.DomainId,
+		"UpdatedAt":           agent.UpdatedAt,
+		"UpdatedBy":           agent.UpdatedBy.GetSafeId(),
+		"GreetingMediaId":     agent.GreetingMediaId(),
+		"AllowChannels":       pq.Array(agent.AllowChannels),
+		"ChatCount":           agent.ChatCount,
+		"ExtraChatCount":      agent.ExtraChatCount,
+		"EmailCount":          limits.Base,
+		"ExtraEmailCount":     limits.Extra,
+		"EmailPostponedCount": limits.Postponed,
+		"NoPostponedLimit":    limits.NoPostponedLimit,
+		"SupervisorIds":       pq.Array(model.LookupIds(agent.Supervisor)),
+		"TeamId":              agent.Team.GetSafeId(),
+		"RegionId":            agent.Region.GetSafeId(),
+		"AuditorIds":          pq.Array(model.LookupIds(agent.Auditor)),
+		"Supervisor":          agent.IsSupervisor,
+		"TaskCount":           agent.TaskCount,
+		"ScreenControl":       agent.ScreenControl,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.update.app_error", fmt.Sprintf("Id=%v, %s", agent.Id, err.Error()), extractCodeFromErr(err))

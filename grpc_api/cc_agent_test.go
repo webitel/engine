@@ -114,6 +114,54 @@ func TestTransformAgentEmailLimits(t *testing.T) {
 	}
 }
 
+func TestTransformAgentEmailPostponedCount(t *testing.T) {
+	zero, five := uint32(0), uint32(5)
+	for _, limit := range []*uint32{nil, &zero, &five} {
+		data, err := protojson.Marshal(transformAgent(&model.Agent{EmailPostponedCount: limit}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var decoded engine.Agent
+		if err := protojson.Unmarshal(data, &decoded); err != nil {
+			t.Fatal(err)
+		}
+		if (decoded.EmailPostponedCount == nil) != (limit == nil) || (limit != nil && *decoded.EmailPostponedCount != *limit) {
+			t.Fatalf("response postponed limit = %v, want %v (%s)", decoded.EmailPostponedCount, limit, data)
+		}
+	}
+}
+
+func TestAgentEmailPostponedCountWirePresence(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		present bool
+		count   uint64
+	}{
+		{name: "omitted"},
+		{name: "explicit zero", present: true},
+		{name: "nonzero", present: true, count: 3},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var data []byte
+			if tc.present {
+				data = protowire.AppendVarint(protowire.AppendTag(nil, 17, protowire.VarintType), tc.count)
+			}
+			var create engine.CreateAgentRequest
+			var patch engine.PatchAgentRequest
+			for _, m := range []proto.Message{&create, &patch} {
+				if err := proto.Unmarshal(data, m); err != nil {
+					t.Fatal(err)
+				}
+			}
+			for _, count := range []*uint32{create.EmailPostponedCount, patch.EmailPostponedCount} {
+				if (count != nil) != tc.present || (count != nil && uint64(*count) != tc.count) {
+					t.Fatal("postponed limit lost wire presence or value")
+				}
+			}
+		})
+	}
+}
+
 func TestAgentEmailCountWirePresence(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
