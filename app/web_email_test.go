@@ -44,7 +44,7 @@ func (q *fakeEmailQueue) CallEvents() <-chan *model.CallEvent                 { 
 func (q *fakeEmailQueue) UserStateEvents() <-chan *model.UserState            { return nil }
 func (q *fakeEmailQueue) NotificationEvents() <-chan *model.Notification      { return nil }
 func (q *fakeEmailQueue) ChatEvents() <-chan *model.ChatEvent                 { return q.chat }
-func (q *fakeEmailQueue) EmailEvents() <-chan *model.EmailEvent           { return q.email }
+func (q *fakeEmailQueue) EmailEvents() <-chan *model.EmailEvent               { return q.email }
 func (q *fakeEmailQueue) Rebound() <-chan struct{}                            { return q.rebound }
 func (q *fakeEmailQueue) BulkUnbind(_ []*model.BindQueueEvent) model.AppError { return nil }
 
@@ -184,7 +184,7 @@ func newEmailEnv(t *testing.T) *emailEnv {
 	auth := &fakeAuth{sessions: map[string]*auth_manager.Session{
 		"tab-a": emailSession("tab-a", 42, true), "tab-b": emailSession("tab-b", 42, true),
 		"other": emailSession("other", 43, true)}}
-	a := &App{config: &model.Config{EmailWorkspace: true, AuthCacheExpire: 30}, ctx: context.Background(),
+	a := &App{config: &model.Config{EmailSettings: model.EmailSettings{EmailWorkspace: true}, AuthCacheExpire: 30}, ctx: context.Background(),
 		Log: wlog.NewLogger(&wlog.LoggerConfiguration{}), tracer: NewTrace(), MessageQueue: &fakeMQ{q: q},
 		sessionManager: auth, Store: fakeStore{}}
 	a.Hubs = NewHubs(a)

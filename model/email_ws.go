@@ -18,7 +18,7 @@ var emailWsTypes = map[string]string{
 // WebSocketEvent is the event "email" of docs/email-events.md: only the fields of its type,
 // ids and versions as decimal strings.
 func (e *EmailEvent) WebSocketEvent() *WebSocketEvent {
-	d := map[string]interface{}{
+	d := map[string]any{
 		"type":              emailWsTypes[e.EventType],
 		"schema_version":    EmailSchema,
 		"event_id":          e.EventId,
@@ -37,7 +37,7 @@ func (e *EmailEvent) WebSocketEvent() *WebSocketEvent {
 
 // NewEmailResyncEvent tells the client to read everything in view again.
 func NewEmailResyncEvent(reason string) *WebSocketEvent {
-	return &WebSocketEvent{Event: WebsocketEmailEvent, Data: map[string]interface{}{
+	return &WebSocketEvent{Event: WebsocketEmailEvent, Data: map[string]any{
 		"type": "resync_required", "schema_version": EmailSchema, "reason": reason,
 	}}
 }
