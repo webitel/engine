@@ -548,8 +548,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 
 	req := callRequestFromProto(in)
 
-	var id string
-	id, err = api.ctrl.CreateCall(ctx, session, req, in.GetParams().GetVariables())
+	id, err := api.ctrl.CreateCall(ctx, session, req, in.GetParams().GetVariables())
 	if err != nil {
 		return nil, err
 	}

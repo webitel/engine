@@ -224,9 +224,8 @@ func (c *CallConnection) ConfirmPushCall(id string) model.AppError {
 	return nil
 }
 
-func (c *CallConnection) SetCallVariables(id string, variables map[string]string) model.AppError {
-
-	res, err := c.api.SetVariables(context.Background(), &fs.SetVariablesRequest{
+func (c *CallConnection) SetCallVariablesContext(ctx context.Context, id string, variables map[string]string) model.AppError {
+	res, err := c.api.SetVariables(ctx, &fs.SetVariablesRequest{
 		Uuid:      id,
 		Variables: variables,
 	})
@@ -240,6 +239,10 @@ func (c *CallConnection) SetCallVariables(id string, variables map[string]string
 	}
 
 	return nil
+}
+
+func (c *CallConnection) SetCallVariables(id string, variables map[string]string) model.AppError {
+	return c.SetCallVariablesContext(context.Background(), id, variables)
 }
 
 func (c *CallConnection) Hold(id string) model.AppError {

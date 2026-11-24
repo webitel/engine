@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"sync"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -9,6 +10,51 @@ import (
 
 func (a *App) UserCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	return a.Store.User().CheckAccess(ctx, domainId, id, groups, access)
+}
+
+func (app *App) GetUsersCallsInfo(ctx context.Context, fromUserID, toUserID int64, domainID int64) (*model.UserCallInfo, *model.UserCallInfo, model.AppError) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	var (
+		wg               sync.WaitGroup
+		once             sync.Once
+		infoFrom, infoTo *model.UserCallInfo
+		firstErr         model.AppError
+	)
+
+	fail := func(err model.AppError) {
+		once.Do(func() {
+			firstErr = err
+			cancel()
+		})
+	}
+
+	wg.Go(func() {
+		r, e := app.GetUserCallInfo(ctx, fromUserID, domainID)
+		if e != nil {
+			fail(e)
+			return
+		}
+		infoFrom = r
+	})
+
+	wg.Go(func() {
+		r, e := app.GetUserCallInfo(ctx, fromUserID, domainID)
+		if e != nil {
+			fail(e)
+			return
+		}
+		infoTo = r
+	})
+
+	wg.Wait()
+
+	if firstErr != nil {
+		return nil, nil, firstErr
+	}
+
+	return infoFrom, infoTo, nil
 }
 
 func (app *App) GetUserCallInfo(ctx context.Context, userId, domainId int64) (*model.UserCallInfo, model.AppError) {
