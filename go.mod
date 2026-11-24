@@ -10,7 +10,7 @@ require (
 	firebase.google.com/go/v4 v4.14.1
 	github.com/BoRuDar/configuration/v5 v5.0.1
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/XSAM/otelsql v0.32.0
+	github.com/XSAM/otelsql v0.44.0
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/handlers v1.5.2
