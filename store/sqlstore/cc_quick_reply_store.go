@@ -2,6 +2,8 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -28,6 +30,34 @@ func quickReplySearchPattern(q *string) *string {
 	return model.NewString("%" + *q + "%")
 }
 
+// quickReplyInDomain is true when all :Teams and :Queues exist in :DomainId.
+const quickReplyInDomain = `((select count(*) from call_center.cc_team t
+		where t.domain_id = :DomainId and t.id = any(:Teams::bigint[]))
+		= (select count(distinct x) from unnest(coalesce(:Teams::bigint[], '{}')) x)
+	and (select count(*) from call_center.cc_queue q
+		where q.domain_id = :DomainId and q.id = any(:Queues::int[]))
+		= (select count(distinct x) from unnest(coalesce(:Queues::int[], '{}')) x))`
+
+// quickReplyWritten reads the row written by the CTE s.
+const quickReplyWritten = `	select s.id
+		, s.created_at
+		, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by
+		, s.updated_at
+		, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by
+		, s.name
+		, s.text
+		, s.channel
+		, s.html
+		, (select jsonb_agg(call_center.cc_get_lookup(t.id, t.name))
+			from call_center.cc_team t
+			where t.id = any (s.teams)) as teams
+		, (select jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name))
+			from call_center.cc_queue a
+			where a.id = any (s.queues)) as queues
+	from s
+		left join directory.wbt_user uc on uc.id = s.created_by
+		left join directory.wbt_user uu on uu.id = s.updated_by`
+
 func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
 	var resp *model.QuickReply
 
@@ -42,34 +72,24 @@ func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *m
 		"Article":   reply.Article.GetSafeId(),
 		"Teams":     pq.Array(model.LookupIds(reply.Teams)),
 		"Queues":    pq.Array(model.LookupIds(reply.Queues)),
+		"Channel":   reply.Channel,
+		"Html":      reply.Html,
 	}
 
 	query := `with s as (
     insert into call_center.cc_quick_reply (domain_id, created_at, updated_at, created_by, updated_by,
-                                      name, text, article, teams, queues)
-    values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
-            :Name, :Text, :Article, :Teams, :Queues)
+                                      name, text, article, teams, queues, channel, html)
+    select :DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
+            :Name, :Text, :Article, :Teams::bigint[], :Queues::int[], :Channel, :Html
+    where :Channel <> 'email' or ` + quickReplyInDomain + `
     returning *
 	)
-
-	select s.id
-       	, s.created_at
-       	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by
-       	, s.updated_at
-       	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by
-		, s.name
-       	, s.text
-		, ( SELECT jsonb_agg(call_center.cc_get_lookup(t.id, t.name)) AS jsonb_agg
-           	FROM call_center.cc_team t
-          	WHERE t.id = ANY (s.teams)) AS teams
-	   	, ( SELECT jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name)) AS jsonb_agg
-			FROM call_center.cc_queue a
-          	WHERE a.id = ANY (s.queues)) AS queues
-	from s
-		left join directory.wbt_user uc on uc.id = s.created_by
-		left join directory.wbt_user uu on uu.id = s.updated_by`
+` + quickReplyWritten
 
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&resp, query, args); err != nil {
+		if errors.Is(err, sql.ErrNoRows) && reply.IsEmail() {
+			return nil, model.NewQuickReplyRestrictionError()
+		}
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.create.app_error", fmt.Sprintf("name=%v, %v", reply.Name, err.Error()), extractCodeFromErr(err))
 	}
 
@@ -85,10 +105,12 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		"UserId":   userId,
 		"Queue":    pq.Array(search.Queue),
 		"RestrictToAgent": search.RestrictToAgent,
+		"Channel":  search.Channel,
 	}
 
 	where := `
 		domain_id = :DomainId
+		AND t.channel = :Channel
 		AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar OR t.text ILIKE :Q::varchar)
 		AND (:Ids::int8[] isnull OR t.id = ANY(:Ids::bigint[]))
 		and (
@@ -124,6 +146,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 			"Name": search.Name,
 			"Queue": pq.Array(search.Queue),
 			"RestrictToAgent": search.RestrictToAgent,
+			"Channel": search.Channel,
 	}
 	fields := GetFields(search.Fields, &model.QuickReply{})
 	parsedFields := strings.Join(fields, ", ")
@@ -151,6 +174,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 				end as agent_priority
 			from call_center.cc_quick_reply_list t, agent_info_cte agent_info
 			where t.domain_id = :DomainId
+				and t.channel = :Channel
 				and (:Q::varchar is null or t.name ilike :Q::varchar or t.text ilike :Q::varchar)
 				and (:Ids::int8[] is null or t.id = any(:Ids::bigint[]))
 				and (
@@ -204,6 +228,8 @@ func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *m
 		"Article":   reply.Article.GetSafeId(),
 		"Teams":     pq.Array(model.LookupIds(reply.Teams)),
 		"Queues":    pq.Array(model.LookupIds(reply.Queues)),
+		"Html":      reply.Html,
+		"Channel":   reply.Channel,
 	}
 
 	query := `with s as (
@@ -214,33 +240,85 @@ func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *m
 				text = :Text,
 				article = :Article,
 				teams = :Teams,
-				queues = :Queues
+				queues = :Queues,
+				html = :Html
 			where id = :Id and domain_id = :DomainId
+				and (:Channel <> 'email' or ` + quickReplyInDomain + `)
 		returning *
 	)
-	
-	select s.id
-       	, s.created_at
-       	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by
-       	, s.updated_at
-       	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by
-		, s.name
-       	, s.text
-		, ( SELECT jsonb_agg(call_center.cc_get_lookup(t.id, t.name)) AS jsonb_agg
-           	FROM call_center.cc_team t
-          	WHERE t.id = ANY (s.teams)) AS teams
-	   	, ( SELECT jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name)) AS jsonb_agg
-			FROM call_center.cc_queue a
-          	WHERE a.id = ANY (s.queues)) AS queues
-	from s
-		left join directory.wbt_user uc on uc.id = s.created_by
-		left join directory.wbt_user uu on uu.id = s.updated_by`
+` + quickReplyWritten
 
+	email := reply.IsEmail()
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&reply, query, args); err != nil {
+		if email {
+			return nil, s.emailWriteError(ctx, args, err)
+		}
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return reply, nil
+}
+
+// PatchEmail writes only the given fields of an Email reply.
+func (s SqlQuickReplyStore) PatchEmail(ctx context.Context, domainId int64, reply *model.QuickReply, fields map[string]bool) (*model.QuickReply, model.AppError) {
+	var teams, queues []int
+	if fields["teams"] {
+		teams = model.LookupIds(reply.Teams)
+	}
+	if fields["queues"] {
+		queues = model.LookupIds(reply.Queues)
+	}
+	args := map[string]any{
+		"DomainId":  domainId,
+		"Id":        reply.Id,
+		"UpdatedAt": reply.UpdatedAt,
+		"UpdatedBy": reply.UpdatedBy.GetSafeId(),
+		"Name":      reply.Name,
+		"Text":      reply.Text,
+		"Html":      reply.Html,
+		"Teams":     pq.Array(teams),
+		"Queues":    pq.Array(queues),
+		"SetName":   fields["name"],
+		"SetText":   fields["text"],
+		"SetHtml":   fields["html"],
+		"SetTeams":  fields["teams"],
+		"SetQueues": fields["queues"],
+	}
+
+	// Unset Teams/Queues are NULL and pass the domain check.
+	query := `with s as (
+		update call_center.cc_quick_reply
+			set updated_at = :UpdatedAt,
+				updated_by = :UpdatedBy,
+				name = case when :SetName then :Name else name end,
+				text = case when :SetText then :Text else text end,
+				html = case when :SetHtml then :Html else html end,
+				teams = case when :SetTeams then :Teams::bigint[] else teams end,
+				queues = case when :SetQueues then :Queues::int[] else queues end
+			where id = :Id and domain_id = :DomainId and channel = 'email'
+				and ` + quickReplyInDomain + `
+		returning *
+	)
+` + quickReplyWritten
+
+	var resp *model.QuickReply
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&resp, query, args); err != nil {
+		return nil, s.emailWriteError(ctx, args, err)
+	}
+
+	return resp, nil
+}
+
+// emailWriteError tells a team or queue of another domain from a missing reply.
+func (s SqlQuickReplyStore) emailWriteError(ctx context.Context, args map[string]any, err error) model.AppError {
+	if errors.Is(err, sql.ErrNoRows) {
+		ok, e := s.GetMaster().WithContext(ctx).SelectInt(`select (`+quickReplyInDomain+`)::int`, args)
+		if e == nil && ok == 0 {
+			return model.NewQuickReplyRestrictionError()
+		}
+	}
+
+	return model.NewCustomCodeError("store.sql_quick_reply.update.app_error", err.Error(), extractCodeFromErr(err))
 }
 
 func (s SqlQuickReplyStore) Delete(ctx context.Context, domainId int64, id uint32) model.AppError {

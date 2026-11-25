@@ -1,5 +1,33 @@
 # engine
 
+## Email quick replies — EM-30
+
+Quick Replies have a `channel`: empty for non-Email replies or `email`, set on
+create only. Search without `channel` returns replies without a channel, with
+`email` only Email replies; another value is refused
+(`quick_reply.email.invalid_channel`).
+
+- **Body.** `text` is required and is the plain-text fallback, `html` is
+  optional. HTML is stored sanitized: paragraphs, line breaks, emphasis,
+  lists, quotes and `http`/`https`/`mailto` links; markup without text is
+  stored empty. `text` and `html` are limited to 64 KiB each.
+- **Variables.** Only `${agent_name}`, `${contact_name}`, `${thread_id}` and
+  `${thread_subject}`, case sensitive, in `text` and in HTML text; another or
+  unclosed `${` and a variable in an HTML attribute are refused. Workspace
+  fills them on insert as text; a missing value becomes empty with a warning.
+- **Edit.** PUT replaces the reply. PATCH of an Email reply changes only
+  `name`, `text`, `html`, `teams` and `queues` listed in `fields` (over HTTP:
+  the keys of the body); none of them is `quick_reply.email.empty_patch`.
+  `article` is not used. Teams and queues must belong to the domain
+  (`quick_reply.email.invalid_restriction`).
+- **Access.** Rights of `dictionaries`; with `restrict_to_agent` a reply
+  without teams and queues, of the agent's team or of the agent's queues.
+- **Send.** Workspace sends the final `body_html`; `email-service` derives the
+  plain text. The profile signature stays a separate fragment.
+
+Other errors: `quick_reply.email.text_required`, `body_too_large`,
+`invalid_token`, `token_in_attribute`, all `InvalidArgument`.
+
 ## Email events — EM-26
 
 Stage 17 delivers the Workspace events of `email-service` to the operator over

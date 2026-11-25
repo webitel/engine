@@ -10,13 +10,16 @@ type QuickReply struct {
 	Queues  []*Lookup `json:"queue" db:"queues"`
 	Teams   []*Lookup `json:"team" db:"teams"`
 	Article *Lookup   `json:"article" db:"article"`
+	Channel string    `json:"channel" db:"channel"`
+	Html    string    `json:"html" db:"html"`
 }
 
 type SearchQuickReply struct {
 	ListRequest
-	Queue []uint32
-	Ids   []uint32
-	Name  *string
+	Queue   []uint32
+	Ids     []uint32
+	Name    *string
+	Channel string
 	
 	RestrictToAgent bool
 }
@@ -29,10 +32,13 @@ type QuickReplyPatch struct {
 	Queues    []*Lookup  `json:"queue" db:"queues"`
 	Teams     []*Lookup  `json:"team" db:"teams"`
 	Article   *Lookup    `json:"article" db:"article"`
+	Html      *string    `json:"html"`
+	// Fields is the PATCH mask; only Email replies use it.
+	Fields []string `json:"fields"`
 }
 
 func (p QuickReply) AllowFields() []string {
-	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "teams", "queues"}
+	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "teams", "queues", "channel", "html"}
 }
 
 func (QuickReply) DefaultOrder() string {
