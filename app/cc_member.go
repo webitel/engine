@@ -9,7 +9,10 @@ import (
 	"github.com/webitel/wlog"
 )
 
-func (app *App) resolveCommunicationTypeChannels(ctx context.Context, domainID int64, communications []*model.MemberCommunication,
+func (app *App) resolveCommunicationTypeChannels(
+	ctx context.Context,
+	domainID int64,
+	communications []*model.MemberCommunication,
 	fillDefaults bool,
 ) (map[int]string, model.AppError) {
 	ids := make([]uint32, 0, len(communications))
@@ -300,10 +303,6 @@ func (app *App) ResetMembers(ctx context.Context, domainId int64, req *model.Res
 
 func (app *App) ResetMembersCount(ctx context.Context, domainID int64, query *model.ResetMembersCountQuery) (int64, model.AppError) {
 	return app.Store.Member().ResetMembersCount(ctx, domainID, query)
-}
-
-func (app *App) GetMemberAttempts(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) {
-	return app.Store.Member().AttemptsList(ctx, memberId)
 }
 
 func (app *App) SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, bool, model.AppError) {

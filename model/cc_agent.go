@@ -534,10 +534,6 @@ func (r *AgentLoginRequest) Validate() AppError {
 		return NewBadRequestError("model.cc_agent.validate.invalid_agent_login_id", "Agent login require agent id")
 	}
 
-	if r.DomainID <= 0 {
-		return NewBadRequestError("model.cc_agent.validate.invalid_agent_domain", "Agent login require domain id")
-	}
-
 	return nil
 }
 

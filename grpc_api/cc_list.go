@@ -258,7 +258,7 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 		return nil, err
 	}
 
-	communication, err = api.app.CreateListCommunication(ctx, communication)
+	communication, err = api.app.CreateListCommunication(ctx, session.Domain(0), communication)
 
 	if err != nil {
 		return nil, err
@@ -294,6 +294,10 @@ func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.Cre
 		}
 	}
 
+	if _, err := api.app.GetListById(ctx, session.Domain(0), in.GetListId()); err != nil {
+		return nil, err
+	}
+
 	failures := make([]*engine.ListCommunicationBulkError, 0)
 	valid := make([]*model.ListCommunication, 0, len(in.GetItems()))
 	validIndex := make([]int32, 0, len(in.GetItems()))
@@ -322,7 +326,7 @@ func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.Cre
 
 	var inserted []*model.ListCommunication
 	if len(valid) > 0 {
-		inserted, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), valid)
+		inserted, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), session.Domain(0), valid)
 		if err != nil {
 			return nil, err
 		}

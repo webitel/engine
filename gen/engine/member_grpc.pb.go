@@ -34,7 +34,6 @@ const (
 	MemberService_DeleteAllMembers_FullMethodName          = "/engine.MemberService/DeleteAllMembers"
 	MemberService_ResetMembers_FullMethodName              = "/engine.MemberService/ResetMembers"
 	MemberService_ResetMembersCount_FullMethodName         = "/engine.MemberService/ResetMembersCount"
-	MemberService_SearchMemberAttempts_FullMethodName      = "/engine.MemberService/SearchMemberAttempts"
 	MemberService_SearchAttempts_FullMethodName            = "/engine.MemberService/SearchAttempts"
 	MemberService_ResetActiveAttempts_FullMethodName       = "/engine.MemberService/ResetActiveAttempts"
 	MemberService_SearchAttemptsHistory_FullMethodName     = "/engine.MemberService/SearchAttemptsHistory"
@@ -81,8 +80,6 @@ type MemberServiceClient interface {
 	// reset criteria without performing the reset operation.
 	// Can be used to preview the impact of a reset request.
 	ResetMembersCount(ctx context.Context, in *ResetMembersCountRequest, opts ...grpc.CallOption) (*ResetMembersCountResponse, error)
-	// SearchMemberAttempts
-	SearchMemberAttempts(ctx context.Context, in *SearchMemberAttemptsRequest, opts ...grpc.CallOption) (*ListMemberAttempt, error)
 	// SearchAttempts
 	SearchAttempts(ctx context.Context, in *SearchAttemptsRequest, opts ...grpc.CallOption) (*ListAttempt, error)
 	ResetActiveAttempts(ctx context.Context, in *ResetActiveAttemptsRequest, opts ...grpc.CallOption) (*ResetActiveAttemptsResponse, error)
@@ -263,15 +260,6 @@ func (c *memberServiceClient) ResetMembersCount(ctx context.Context, in *ResetMe
 	return out, nil
 }
 
-func (c *memberServiceClient) SearchMemberAttempts(ctx context.Context, in *SearchMemberAttemptsRequest, opts ...grpc.CallOption) (*ListMemberAttempt, error) {
-	out := new(ListMemberAttempt)
-	err := c.cc.Invoke(ctx, MemberService_SearchMemberAttempts_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *memberServiceClient) SearchAttempts(ctx context.Context, in *SearchAttemptsRequest, opts ...grpc.CallOption) (*ListAttempt, error) {
 	out := new(ListAttempt)
 	err := c.cc.Invoke(ctx, MemberService_SearchAttempts_FullMethodName, in, out, opts...)
@@ -388,8 +376,6 @@ type MemberServiceServer interface {
 	// reset criteria without performing the reset operation.
 	// Can be used to preview the impact of a reset request.
 	ResetMembersCount(context.Context, *ResetMembersCountRequest) (*ResetMembersCountResponse, error)
-	// SearchMemberAttempts
-	SearchMemberAttempts(context.Context, *SearchMemberAttemptsRequest) (*ListMemberAttempt, error)
 	// SearchAttempts
 	SearchAttempts(context.Context, *SearchAttemptsRequest) (*ListAttempt, error)
 	ResetActiveAttempts(context.Context, *ResetActiveAttemptsRequest) (*ResetActiveAttemptsResponse, error)
@@ -453,9 +439,6 @@ func (UnimplementedMemberServiceServer) ResetMembers(context.Context, *ResetMemb
 }
 func (UnimplementedMemberServiceServer) ResetMembersCount(context.Context, *ResetMembersCountRequest) (*ResetMembersCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetMembersCount not implemented")
-}
-func (UnimplementedMemberServiceServer) SearchMemberAttempts(context.Context, *SearchMemberAttemptsRequest) (*ListMemberAttempt, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchMemberAttempts not implemented")
 }
 func (UnimplementedMemberServiceServer) SearchAttempts(context.Context, *SearchAttemptsRequest) (*ListAttempt, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchAttempts not implemented")
@@ -770,24 +753,6 @@ func _MemberService_ResetMembersCount_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MemberService_SearchMemberAttempts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchMemberAttemptsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MemberServiceServer).SearchMemberAttempts(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MemberService_SearchMemberAttempts_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MemberServiceServer).SearchMemberAttempts(ctx, req.(*SearchMemberAttemptsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _MemberService_SearchAttempts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchAttemptsRequest)
 	if err := dec(in); err != nil {
@@ -1012,10 +977,6 @@ var MemberService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResetMembersCount",
 			Handler:    _MemberService_ResetMembersCount_Handler,
-		},
-		{
-			MethodName: "SearchMemberAttempts",
-			Handler:    _MemberService_SearchMemberAttempts_Handler,
 		},
 		{
 			MethodName: "SearchAttempts",
