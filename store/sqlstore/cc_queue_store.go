@@ -492,58 +492,39 @@ func (s SqlQueueStore) Delete(ctx context.Context, domainId, id int64) model.App
 
 // QueueReportGeneral TODO call_center.cc_agent_channel not unique join
 // FIXME hot fix WTEL-4333
-func sortQueueReportGeneral(val string) string {
-	sort, field := orderBy(val)
-
-	switch field {
-	case "queue":
-		field = "q.name"
-	case "team":
-		field = "ct.name"
-	case "agent_status":
-		field = "coalesce(array_length(queue_ag.total, 1), 0)"
-	case "missed":
-		field = "4"
-	case "processed":
-		field = "5"
-	case "waiting":
-		field = "6"
-	case "count":
-		field = "7"
-	case "transferred":
-		field = "8"
-	case "bridged":
-		field = "9"
-	case "abandoned":
-		field = "10"
-	case "sum_bill_sec":
-		field = "11"
-	case "sl20":
-		field = "12"
-	case "sl30":
-		field = "13"
-	case "avg_wrap_sec":
-		field = "14"
-	case "avg_awt_sec":
-		field = "15"
-	case "max_awt_sec":
-		field = "16"
-	case "avg_asa_sec":
-		field = "17"
-	case "avg_aht_sec":
-		field = "18"
-	default:
-		sort = "desc"
-		field = "q.priority"
-	}
-
-	return fmt.Sprintf("%s %s", field, sort)
+var queueReportGeneralSort = SortSpec{
+	Default: "-priority",
+	Exprs: map[string]string{
+		"priority":     "q.priority",
+		"queue":        "q.name",
+		"team":         "ct.name",
+		"agent_status": "coalesce(array_length(queue_ag.total, 1), 0)",
+		"missed":       "4",
+		"processed":    "5",
+		"waiting":      "6",
+		"count":        "7",
+		"transferred":  "8",
+		"bridged":      "9",
+		"abandoned":    "10",
+		"sum_bill_sec": "11",
+		"sl20":         "12",
+		"sl30":         "13",
+		"avg_wrap_sec": "14",
+		"avg_awt_sec":  "15",
+		"max_awt_sec":  "16",
+		"avg_asa_sec":  "17",
+		"avg_aht_sec":  "18",
+	},
 }
 
 func (s SqlQueueStore) QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError) {
-	var report *model.QueueReportGeneralAgg
+	sort, err := queueReportGeneralSort.Expr(search.Sort)
+	if err != nil {
+		return nil, model.NewBadRequestError("sqlstore.cc_queue_store.queue_report_general.sort", err.Error())
+	}
 
-	err := s.GetMaster().WithContext(ctx).SelectOne(&report, `
+	var report *model.QueueReportGeneralAgg
+	err = s.GetMaster().WithContext(ctx).SelectOne(&report, `
 with queues  as  (
     select *
     from call_center.cc_queue q
@@ -670,7 +651,7 @@ items as materialized (
         and ( :Types::int[] isnull or q.type = any(:Types) )
         and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
         and (:Q::varchar isnull or (q.name ilike :Q::varchar ) )
-    order by `+sortQueueReportGeneral(search.Sort)+`
+    order by `+sort+`
     limit :Limit
     offset :Offset
 )
@@ -705,14 +686,17 @@ select
 	return report, nil
 }
 
+var queueTagSort = SortSpec{
+	Default: "name",
+	Exprs:   map[string]string{"name": "name"},
+}
+
 // todo
 func (s SqlQueueStore) ListTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, model.AppError) {
-	var res []*model.Tag
-	if search.Sort == "" {
-		search.Sort = "name"
+	sort, err := queueTagSort.Clause(search.Sort)
+	if err != nil {
+		return nil, model.NewBadRequestError("sqlstore.cc_queue_store.list_tags.sort", err.Error())
 	}
-	st, f := orderBy(search.Sort)
-	sort := fmt.Sprintf("order by %s %s", QuoteIdentifier(f), st)
 
 	q := `with tags as (
     select distinct tag as name
@@ -727,7 +711,8 @@ from tags
 limit :Limit
 offset :Offset`
 
-	_, err := s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]any{
+	var res []*model.Tag
+	_, err = s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]any{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 		"Limit":    search.GetLimit(),

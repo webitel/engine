@@ -118,6 +118,7 @@ require (
 	github.com/webitel/crypto/encoding/jsonc v0.1.0 // indirect
 	github.com/webitel/crypto/env v0.2.0 // indirect
 	github.com/webitel/webitel-go-kit/pkg/logging v0.1.0 // indirect
+	github.com/webitel/webitel-go-kit/pkg/sqlkit v0.0.0-20261125100654-bf93e50f9f7e // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect

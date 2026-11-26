@@ -395,6 +395,15 @@ type AgentState struct {
 	Payload  *string    `json:"payload" db:"payload"`
 }
 
+func (s AgentState) AllowFields() []string {
+	return []string{"id", "channel", "agent", "queue", "joined_at", "leaved_at", "duration", "state", "payload"}
+}
+func (s AgentState) DefaultFields() []string {
+	return []string{"id", "channel", "agent", "queue", "joined_at", "leaved_at", "duration", "state", "payload"}
+}
+func (s AgentState) EntityName() string   { return "cc_agent_state_history" }
+func (s AgentState) DefaultOrder() string { return "-joined_at" }
+
 type SearchAgentState struct {
 	ListRequest
 	JoinedAt FilterBetween
@@ -482,6 +491,8 @@ func (a UserStatus) DefaultFields() []string {
 func (a UserStatus) EntityName() string {
 	return "cc_user_status_view"
 }
+
+func (a UserStatus) SortExprs() map[string]string { return map[string]string{"position": "position"} }
 
 type AgentInQueueStatistic struct {
 	Queue      Lookup               `json:"queue" db:"queue"`

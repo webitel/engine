@@ -164,24 +164,22 @@ _error:
 	return nil, model.NewCustomCodeError("store.sql_member.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 }
 
-func getMemberSortClause(sort string) string {
-	if sort == "" {
-		return "order by created_at desc"
-	}
-
-	direction, field := orderBy(sort)
-
-	// we don't have agent field in cc_member table
-	if field == "agent" {
-		return fmt.Sprintf("order by coalesce((select coalesce(agn.name, agn.username) from call_center.cc_agent a left join directory.wbt_user agn on agn.id = a.user_id where a.id = m.agent_id), '') %s", direction)
-	}
-
-	if field == "communications" {
-		return fmt.Sprintf("order by (m.communications->0->>'destination') %s", direction)
-	}
-
-	return GetOrderBy("cc_member", sort)
+var memberSort = SortSpec{
+	Table:   "cc_member",
+	Default: "-created_at",
+	Columns: []string{"id", "communications", "queue", "priority", "expire_at", "created_at", "variables", "name",
+		"timezone", "bucket", "ready_at", "stop_cause", "stop_at", "last_hangup_at", "attempts", "agent", "skill", "reserved"},
+	Exprs: map[string]string{
+		"created_at": "m.created_at",
+		"agent": `coalesce((select coalesce(agn.name, agn.username)
+			from call_center.cc_agent a
+			left join directory.wbt_user agn on agn.id = a.user_id
+			where a.id = m.agent_id), '')`,
+		"communications": `(m.communications->0->>'destination')`,
+	},
 }
+
+func getMemberSortClause(sort string) (string, error) { return memberSort.Clause(sort) }
 
 // memberSearchFilters is the shared WHERE of SearchMembers and GetMaxCommunicationsCount, so both see the same rows.
 const memberSearchFilters = `m.domain_id = :Domain::int8
@@ -217,9 +215,9 @@ const memberSearchFilters = `m.domain_id = :Domain::int8
 func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
 	var members []*model.Member
 
-	order := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
-	if order == "" {
-		order = "order by created_at desc"
+	order, err := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
+	if err != nil {
+		return nil, model.NewCustomCodeError("sqlstore.cc_member_store.search_members.sort", err.Error(), http.StatusBadRequest)
 	}
 
 	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
@@ -557,15 +555,15 @@ func (s SqlMemberStore) MultiDelete(ctx context.Context, domainId int64, search 
 	var res []*model.Member
 	var err error
 
-	sort := ""
+	sort, err := specFor(model.Member{}).Clause(search.Sort)
+	if err != nil {
+		return nil, model.NewBadRequestError("sqlstore.cc_member_store.multi_delete", err.Error())
+	}
+
 	limit := ""
 
 	if search.PerPage > 0 {
 		limit = fmt.Sprintf("limit %d", search.PerPage)
-	}
-
-	if search.Sort != "" {
-		sort = GetOrderBy(model.Member{}.EntityName(), search.Sort)
 	}
 
 	filters := map[string]any{
