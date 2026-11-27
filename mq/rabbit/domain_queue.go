@@ -484,7 +484,7 @@ func (dq *DomainQueue) connect() error {
 		false,
 		true,
 		amqp.Table{
-			"x-queue-type": "quorum",
+			"x-queue-type": dq.client.settings.QueueType,
 			"x-expires":    10000, // delete after 10s
 		},
 	)

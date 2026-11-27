@@ -20,6 +20,9 @@ const (
 	RECONNECT_SEC        = 5
 
 	MAX_QUEUE_REGISTER_SIZE = 10000
+
+	QUEUE_TYPE_QUORUM  = "quorum"
+	QUEUE_TYPE_CLASSIC = "classic"
 )
 
 const (
@@ -69,6 +72,12 @@ func NewRabbitMQ(nodeName string, settings *model.MessageQueueSettings) mq.Layer
 			wlog.Namespace("context"),
 			wlog.String("protocol", "amqp"),
 		),
+	}
+	switch settings.QueueType {
+	case QUEUE_TYPE_QUORUM, QUEUE_TYPE_CLASSIC:
+	default:
+		mq_.log.Warn(fmt.Sprintf("unknown amqp queue type \"%s\", use %s", settings.QueueType, QUEUE_TYPE_QUORUM))
+		settings.QueueType = QUEUE_TYPE_QUORUM
 	}
 
 	return mq_

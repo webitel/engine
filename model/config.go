@@ -74,6 +74,8 @@ type DiscoverySettings struct {
 
 type MessageQueueSettings struct {
 	Url string `json:"url" flag:"amqp|amqp://admin:admin@rabbit:5672?heartbeat=10|AMQP connection" env:"AMQP"`
+	// QueueType of the websocket event queues: quorum or classic
+	QueueType string `json:"queue_type" flag:"amqp_queue_type|classic|AMQP type of websocket event queues: quorum / classic" env:"AMQP_QUEUE_TYPE"`
 }
 
 type ServerSettings struct {
