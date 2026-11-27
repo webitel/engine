@@ -9,6 +9,7 @@ import (
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/webitel-go-kit/pkg/sqlkit/order"
 )
 
 const ForeignKeyViolationErrorCode = pq.ErrorCode("23503")
@@ -47,7 +48,10 @@ func extractCodeFromErr(err error) int {
 		case ForeignKeyViolationErrorCode, DuplicationViolationErrorCode, FromTriggerValidationErrorCode:
 			code = http.StatusBadRequest
 		}
+	} else if _, ok := errors.AsType[*order.Error](err); ok {
+		code = http.StatusBadRequest
 	}
+
 	return code
 }
 

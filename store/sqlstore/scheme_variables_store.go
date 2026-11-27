@@ -3,10 +3,27 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"strings"
+	"github.com/webitel/webitel-go-kit/pkg/sqlkit/order"
+)
+
+var schemeVariableColumns = []struct{ name, col string }{
+	{model.SchemeVariableFields.Id, "scheme_variable.id"},
+	{model.SchemeVariableFields.Name, "scheme_variable.name"},
+	{model.SchemeVariableFields.Encrypt, "scheme_variable.encrypt"},
+	{model.SchemeVariableFields.Value, "scheme_variable.value"},
+}
+
+var schemeVariableSorter = order.New(order.Columns(map[string]string{
+	model.SchemeVariableFields.Id:      "scheme_variable.id",
+	model.SchemeVariableFields.Name:    "scheme_variable.name",
+	model.SchemeVariableFields.Encrypt: "scheme_variable.encrypt",
+}),
+	order.WithDefaults(order.Field{Name: model.SchemeVariableFields.Id, Dir: order.Asc}),
 )
 
 var (
@@ -40,7 +57,7 @@ func (s *SqlSchemeVariablesStore) Create(ctx context.Context, domainId int64, va
 		values (:DomainId, :Value::text::json, :Name, :Encrypt)
 		returning *
 	)
-	select 
+	select
 		id,
 		name,
 		encrypt,
@@ -65,20 +82,26 @@ func (s *SqlSchemeVariablesStore) Search(ctx context.Context, domainId int64, se
 		args  []any
 	)
 
-	base, appErr := store.ApplyFiltersToBuilderBulk(s.GetQueryBaseFromSearchOptions(domainId, searchOpts), schemeVariablesFiltersFieldsMap, filters)
+	base, err := s.GetQueryBaseFromSearchOptions(domainId, searchOpts)
+	if err != nil {
+		return nil, model.NewBadRequestError("sqlstore.schema_variables.search.sort", err.Error())
+	}
+
+	baseQ, appErr := store.ApplyFiltersToBuilderBulk(base, schemeVariablesFiltersFieldsMap, filters)
 	if appErr != nil {
 		return nil, appErr
 	}
-	switch req := base.(type) {
-	case squirrel.SelectBuilder:
-		query, args, _ = req.ToSql()
-	default:
+
+	q, ok := baseQ.(squirrel.SelectBuilder)
+	if !ok {
 		return nil, model.NewInternalError("store.sql_scheme_variable.get.base_type.wrong", "base of query is of wrong type")
 	}
 
-	_, err := s.GetReplica().WithContext(ctx).Select(&vars, query, args...)
+	if query, args, err = q.ToSql(); err != nil {
+		return nil, model.NewInternalError("store.sql_scheme_variable.search.preparing", err.Error())
+	}
 
-	if err != nil {
+	if _, err = s.GetReplica().WithContext(ctx).Select(&vars, query, args...); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_scheme_variable.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
@@ -127,7 +150,7 @@ func (s *SqlSchemeVariablesStore) Update(ctx context.Context, domainId int64, va
 		where domain_id = :DomainId and id = :Id
 		returning *
 	)
-	select 
+	select
 		id,
 		name,
 		encrypt,
@@ -160,43 +183,25 @@ where domain_id = :DomainId and id = :Id`,
 	}
 }
 
-func (c *SqlSchemeVariablesStore) GetQueryBaseFromSearchOptions(domainId int64, opt *model.ListRequest) squirrel.SelectBuilder {
-	var fields []string
+func (c *SqlSchemeVariablesStore) GetQueryBaseFromSearchOptions(domainId int64, opt *model.ListRequest) (squirrel.SelectBuilder, error) {
 	if opt == nil {
-		// TODO
-		return c.GetQueryBase(domainId, c.getFields())
-	}
-	for _, v := range opt.Fields {
-		if columnName, ok := schemeVariablesSelectFieldsMap[v]; ok {
-			fields = append(fields, columnName)
-		} else {
-			fields = append(fields, v)
-		}
-	}
-	if len(fields) == 0 {
-		fields = append(fields,
-			c.getFields()...)
-	}
-	base := c.GetQueryBase(domainId, fields)
-	if opt.Sort != "" {
-		splitted := strings.Split(opt.Sort, ":")
-		if len(splitted) == 2 {
-			order := splitted[0]
-			column := splitted[1]
-			if v, ok := schemeVariablesFiltersFieldsMap[column]; ok {
-				base = base.OrderBy(fmt.Sprintf("%s %s", v, order))
-			}
-
-		}
+		return c.GetQueryBase(domainId, c.getFields()), nil
 	}
 
-	if opt.GetQ() != nil {
-		base = base.Where("name ilike ?", *opt.GetQ())
+	base := c.GetQueryBase(domainId, c.selectFields(opt.Fields))
+
+	clauses, err := schemeVariableSorter.Resolve(parseSort(opt.Sort))
+	if err != nil {
+		return base, err
 	}
 
-	base = base.Limit(uint64(opt.GetLimit()))
+	base = base.OrderBy(clauses.SQL())
 
-	return base.Offset(uint64(opt.GetOffset()))
+	if q := opt.GetQ(); q != nil {
+		base = base.Where("name ilike ?", *q)
+	}
+
+	return base.Limit(uint64(opt.GetLimit())).Offset(uint64(opt.GetOffset())), nil
 }
 
 func (c *SqlSchemeVariablesStore) GetQueryBase(domainId int64, fields []string) squirrel.SelectBuilder {
@@ -209,9 +214,44 @@ func (c *SqlSchemeVariablesStore) GetQueryBase(domainId int64, fields []string) 
 }
 
 func (c *SqlSchemeVariablesStore) getFields() []string {
-	var fields []string
-	for _, value := range schemeVariablesSelectFieldsMap {
-		fields = append(fields, value)
+	fields := make([]string, 0, len(schemeVariableColumns))
+	for _, f := range schemeVariableColumns {
+		fields = append(fields, f.col)
 	}
+
 	return fields
+}
+
+func (c *SqlSchemeVariablesStore) selectFields(requested []string) []string {
+	fields := make([]string, 0, len(requested))
+
+	for _, v := range requested {
+		if col, ok := schemeVariablesSelectFieldsMap[v]; ok {
+			fields = append(fields, col)
+		}
+	}
+
+	if len(fields) == 0 {
+		return c.getFields()
+	}
+
+	return fields
+}
+
+func parseSort(s string) []string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil
+	}
+
+	if dir, col, ok := strings.Cut(s, ":"); ok {
+		switch strings.ToLower(strings.TrimSpace(dir)) {
+		case "desc":
+			return []string{"-" + col}
+		case "asc":
+			return []string{col}
+		}
+	}
+
+	return []string{s}
 }

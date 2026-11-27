@@ -8,6 +8,7 @@ import (
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
+	"github.com/webitel/webitel-go-kit/pkg/sqlkit/order"
 )
 
 type SqlRoutingSchemaStore struct {
@@ -165,15 +166,18 @@ func (s SqlRoutingSchemaStore) Delete(ctx context.Context, domainId, id int64) m
 	return nil
 }
 
+var routingSchemaTagSort = order.New(order.Columns(map[string]string{
+	"name": "name",
+}), order.WithDefaults(order.Field{Name: "name", Dir: order.Asc}))
+
 // todo
 func (s SqlRoutingSchemaStore) ListTags(ctx context.Context, domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, model.AppError) {
-	var res []*model.RoutingSchemaTag
-	if search.Sort == "" {
-		search.Sort = "name"
+	sort, err := routingSchemaTagSort.SQL([]string{search.Sort})
+	if err != nil {
+		return nil, model.NewBadRequestError("sqlstore.flow_routing_scheme_store.list", err.Error())
 	}
-	st, f := orderBy(search.Sort)
-	sort := fmt.Sprintf("order by %s %s", QuoteIdentifier(f), st)
 
+	var res []*model.RoutingSchemaTag
 	q := `with tags as (
     select distinct tag as name
     from flow.acr_routing_scheme s,
@@ -188,7 +192,7 @@ from tags
 limit :Limit
 offset :Offset`
 
-	_, err := s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]any{
+	_, err = s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]any{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 		"Limit":    search.GetLimit(),

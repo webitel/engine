@@ -4,6 +4,7 @@ import "time"
 
 type QuickReply struct {
 	AclRecord
+
 	Id      int       `json:"id" db:"id"`
 	Name    string    `json:"name" db:"name"`
 	Text    string    `json:"text" db:"text"`
@@ -14,10 +15,11 @@ type QuickReply struct {
 
 type SearchQuickReply struct {
 	ListRequest
+
 	Queue []uint32
 	Ids   []uint32
 	Name  *string
-	
+
 	RestrictToAgent bool
 }
 
@@ -31,7 +33,13 @@ type QuickReplyPatch struct {
 	Article   *Lookup    `json:"article" db:"article"`
 }
 
-func (p QuickReply) AllowFields() []string {
+func (QuickReply) SortExprs() map[string]string {
+	return map[string]string{
+		"agent_priority": "agent_priority",
+	}
+}
+
+func (QuickReply) AllowFields() []string {
 	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "teams", "queues"}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
+	"github.com/webitel/webitel-go-kit/pkg/sqlkit/order"
 	"github.com/webitel/wlog"
 )
 
@@ -164,24 +165,28 @@ _error:
 	return nil, model.NewCustomCodeError("store.sql_member.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 }
 
-func getMemberSortClause(sort string) string {
-	if sort == "" {
-		return "order by created_at desc"
-	}
+var memberSort = order.New(order.Columns(map[string]string{
+	"created_at": "m.created_at",
+	"agent": `coalesce((select coalesce(agn.name, agn.username)
+		from call_center.cc_agent a
+		left join directory.wbt_user agn on agn.id = a.user_id
+		where a.id = m.agent_id), '')`,
+	"communications": `(m.communications->0->>'destination')`,
+	"id":             "m.id",
+	"queue":          "m.queue_id",
+	"priority":       "m.priority",
+	"expire_at":      "m.expire_at",
+	"name":           "m.name",
+	"timezone":       "m.timezone",
+	"bucket":         "m.bucket_id",
+	"ready_at":       "m.ready_at",
+	"stop_cause":     "m.stop_cause",
+	"last_hangup_at": "m.last_hangup_at",
+	"attempts":       "m.attempts",
+	"skill":          "m.skill_id",
+}), order.WithDefaults(order.Field{Name: "created_at", Dir: order.Desc}))
 
-	direction, field := orderBy(sort)
-
-	// we don't have agent field in cc_member table
-	if field == "agent" {
-		return fmt.Sprintf("order by coalesce((select coalesce(agn.name, agn.username) from call_center.cc_agent a left join directory.wbt_user agn on agn.id = a.user_id where a.id = m.agent_id), '') %s", direction)
-	}
-
-	if field == "communications" {
-		return fmt.Sprintf("order by (m.communications->0->>'destination') %s", direction)
-	}
-
-	return GetOrderBy("cc_member", sort)
-}
+func getMemberSortClause(sort string) (string, error) { return memberSort.SQL([]string{sort}) }
 
 // memberSearchFilters is the shared WHERE of SearchMembers and GetMaxCommunicationsCount, so both see the same rows.
 const memberSearchFilters = `m.domain_id = :Domain::int8
@@ -217,17 +222,17 @@ const memberSearchFilters = `m.domain_id = :Domain::int8
 func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
 	var members []*model.Member
 
-	order := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
-	if order == "" {
-		order = "order by created_at desc"
+	order, err := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
+	if err != nil {
+		return nil, model.NewCustomCodeError("sqlstore.cc_member_store.search_members.sort", err.Error(), http.StatusBadRequest)
 	}
 
 	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
 
-	query := `with result as materialized (select m.id, row_number() over ( ` + order + ` ) rn
+	query := `with result as materialized (select m.id, row_number() over ( order by ` + order + ` ) rn
                 from call_center.cc_member m
                 where ` + memberSearchFilters + `
-                ` + order + `
+                order by` + order + `
                 limit :Limit offset :Offset )
    , comm as materialized(select c.id, json_build_object('id', c.id, 'name', c.name)::jsonb j
               from call_center.cc_communication c
@@ -557,15 +562,17 @@ func (s SqlMemberStore) MultiDelete(ctx context.Context, domainId int64, search 
 	var res []*model.Member
 	var err error
 
-	sort := ""
+	sort, err := sorterFor(model.Member{}).SQL([]string{search.Sort})
+	if err != nil {
+		return nil, model.NewBadRequestError("sqlstore.cc_member_store.multi_delete", err.Error())
+	}
+
+	sort = "order by " + sort
+
 	limit := ""
 
 	if search.PerPage > 0 {
 		limit = fmt.Sprintf("limit %d", search.PerPage)
-	}
-
-	if search.Sort != "" {
-		sort = GetOrderBy(model.Member{}.EntityName(), search.Sort)
 	}
 
 	filters := map[string]any{

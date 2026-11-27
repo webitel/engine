@@ -382,6 +382,8 @@ github.com/webitel/webitel-go-kit/pkg/hostaddr v0.1.0 h1:EifVZJ7FbtlBonDlQzyPIMW
 github.com/webitel/webitel-go-kit/pkg/hostaddr v0.1.0/go.mod h1:dwUg3lSRmx30tg7/OyceBBgs5AQlUHTpoa3npq+COsY=
 github.com/webitel/webitel-go-kit/pkg/logging v0.1.0 h1:v4jTtz4rMBNP0apjeJcunvLFweLEW+g71/QPO5Qm3xc=
 github.com/webitel/webitel-go-kit/pkg/logging v0.1.0/go.mod h1:pbc/NQTMSydE3VXzsYqa/WmmHnfqjPUfvQq9R4Dg5Lw=
+github.com/webitel/webitel-go-kit/pkg/sqlkit v0.1.0 h1:0Si2hy+cv/JOhhSkxwPNB9gUvYYQcdxx1CHDviHpHmQ=
+github.com/webitel/webitel-go-kit/pkg/sqlkit v0.1.0/go.mod h1:njsdPsy9NCtLPfX1PnMEN2nAp3Z552r/zC5J1K5kabI=
 github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7 h1:Qi/ustGBfh13I6aZ/ljul679SPJmHbZzFn9h43eloLg=
 github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7/go.mod h1:mXyM8hL9tEBLM4K+Uw8QLuGLo6/eX+5Lvv1ks2Y4us8=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=

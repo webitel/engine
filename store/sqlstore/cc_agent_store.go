@@ -12,6 +12,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
+	"github.com/webitel/webitel-go-kit/pkg/sqlkit/order"
 )
 
 type SqlAgentStore struct {
@@ -605,10 +606,20 @@ group by q.id`, map[string]any{
 	return stats, nil
 }
 
+var agentStateHistorySort = order.New(order.Columns(map[string]string{
+	"id":        "id",
+	"channel":   "channel",
+	"state":     "state",
+	"joined_at": "joined_at",
+	"leaved_at": "leaved_at",
+	"duration":  "duration",
+	"agent":     `agent->>'name'`,
+}), order.WithDefaults(order.Field{Name: "joined_at", Dir: order.Desc}))
+
 func (s SqlAgentStore) HistoryState(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, model.AppError) {
-	order := GetOrderBy("cc_agent_state_history", search.Sort)
-	if order == "" {
-		order = "order by joined_at desc"
+	order, err := agentStateHistorySort.SQL([]string{search.Sort})
+	if err != nil {
+		return nil, model.NewBadRequestError("sqlstore.cc_agent_store.history_state.sort", err.Error())
 	}
 
 	query := `
@@ -950,6 +961,30 @@ order by c.name;`, map[string]any{
 	return res, nil
 }
 
+var agentStatusSort = order.New(order.Columns(map[string]string{
+	"name":            "t.name",
+	"status":          "t.status",
+	"status_duration": "t.status_duration",
+	"status_comment":  "t.status_comment",
+	"extension":       "t.extension",
+	"online":          "t.online",
+	"offline":         "t.offline",
+	"pause":           "t.pause",
+	"pause_cause":     "t.pause_cause",
+	"utilization":     "t.utilization",
+	"call_time":       "t.call_time",
+	"handles":         "t.handles",
+	"missed":          "t.missed",
+	"chat_count":      "t.chat_count",
+	"chat_time":       "t.chat_time",
+	"occupancy":       "t.occupancy",
+	"transferred":     "t.transferred",
+	"max_bridged_at":  "t.max_bridged_at",
+	"max_offering_at": "t.max_offering_at",
+	"team":            `t.team->>'name'`,
+	"user":            `t."user"->>'name'`,
+}))
+
 // FIXME sort, columns
 // allow_change
 func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError) {
@@ -966,15 +1001,20 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisor
 		searchOperator = ILikeComparisonOperator
 	}
 
-	sort = GetOrderBy("t", search.Sort)
+	sort, err := agentStatusSort.SQL([]string{search.Sort})
+	if err != nil {
+		return nil, model.NewBadRequestError("sqlstore.cc_agent_store.status_statistics.sort", err.Error())
+	}
 
 	if sort == "" {
-		sort = `order by case t.status
+		sort = `case t.status
              when 'break_out' then 0
              when 'pause' then 1
              when 'online' then 2
              else 3 end, t.name`
 	}
+
+	sort = "order by " + sort
 
 	f := map[string]any{
 		"DomainId":         domainId,
@@ -1219,8 +1259,7 @@ where t.domain_id = :DomainId
 %s
 limit :Limit offset :Offset`, searchOperator, sort)
 
-	_, err := s.GetMaster().WithContext(ctx).Select(&list, query, f)
-	if err != nil {
+	if _, err := s.GetMaster().WithContext(ctx).Select(&list, query, f); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_status_stats.app_error", err.Error(), extractCodeFromErr(err))
 	}
 

@@ -102,7 +102,12 @@ func (s OnlineSkills) DefaultFields() []string {
 	return []string{"id", "name"}
 }
 func (s OnlineSkills) EntityName() string   { return "cc_online_skills_list" }
-func (s OnlineSkills) DefaultOrder() string { return "is_system desc, name asc" }
+func (s OnlineSkills) DefaultOrder() string { return "default" }
+func (s OnlineSkills) SortExprs() map[string]string {
+	return map[string]string{
+		"default": "is_system desc, name",
+	}
+}
 
 func (s *OnlineSkills) Validate() AppError {
 	if s == nil {

@@ -335,6 +335,13 @@ type Call struct {
 	IsConsultToQueue *bool       `json:"is_consult_to_queue,omitempty" db:"is_consult_to_queue"`
 }
 
+func (c Call) SortExprs() map[string]string {
+	return map[string]string{
+		"from": `coalesce(nullif(("from"::text)::json->>'number', ''), ("from"::text)::json->>'name')`,
+		"to":   `coalesce(nullif(("to"::text)::json->>'number', ''), ("to"::text)::json->>'name')`,
+	}
+}
+
 type CCTask struct {
 	AppId                string               `json:"app_id" db:"app_id"`
 	HasReporting         bool                 `json:"has_reporting" db:"has_reporting"`

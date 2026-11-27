@@ -593,9 +593,7 @@ func (m *Member) IsValid(maxCommunication int) AppError {
 	return nil
 }
 
-func (Member) DefaultOrder() string {
-	return "-id"
-}
+func (Member) DefaultOrder() string { return "-id" }
 
 func (m Member) AllowFields() []string {
 	return m.DefaultFields()
