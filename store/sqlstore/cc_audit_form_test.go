@@ -8,7 +8,7 @@ import (
 )
 
 func TestAuditForm_TeamFirstSort(t *testing.T) {
-	got, err := specFor(model.AuditForm{}).Expr("team_first")
+	got, err := sorterFor(model.AuditForm{}).SQL([]string{"team_first"})
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}

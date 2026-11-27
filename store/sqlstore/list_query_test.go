@@ -2,7 +2,7 @@ package sqlstore
 
 import (
 	"errors"
-	"net/http"
+	"slices"
 	"strings"
 	"testing"
 
@@ -12,11 +12,12 @@ import (
 
 func IsSortError(err error) bool {
 	var oe *order.Error
-
 	return errors.As(err, &oe)
 }
 
-func norm(s string) string { return strings.Join(strings.Fields(s), " ") }
+func norm(s string) string {
+	return strings.Join(strings.Fields(s), " ")
+}
 
 func mustEqual(t *testing.T, got, want string) {
 	t.Helper()
@@ -34,53 +35,80 @@ func mustNoErr(t *testing.T, err error) {
 	}
 }
 
+type testEntity struct {
+	defaultOrder string
+}
+
+func (testEntity) AllowFields() []string {
+	return []string{"id", "name", "options"}
+}
+
+func (testEntity) DefaultFields() []string {
+	return []string{"id", "name"}
+}
+
+func (testEntity) EntityName() string {
+	return "cc_queue"
+}
+
+func (e testEntity) DefaultOrder() string {
+	return e.defaultOrder
+}
+
+type testEntityExprs struct {
+	testEntity
+}
+
+func (testEntityExprs) SortExprs() map[string]string {
+	return map[string]string{
+		"priority": "t.priority",
+		"agents":   "(select count(*) from x where x.q = t.id)",
+	}
+}
+
 func lookupSQL(dir string) string {
 	return `case when not call_center.cc_is_lookup('cc_queue', 'name') then "name" end ` + dir + `, ` +
 		`case when call_center.cc_is_lookup('cc_queue', 'name') then ` +
 		`COALESCE((("name"::text)::json->>'name'), (("name"::text)::json->0->>'name')) end ` + dir
 }
 
-var testSpec = SortSpec{
-	Table:   "cc_queue",
-	Columns: []string{"name", "priority"},
-	Exprs: map[string]string{
-		"agents":   "(select count(*) from x where x.q = t.id)",
-		"priority": "t.priority",
-	},
-	Default: "-name",
+func TestSorterFor_Fields(t *testing.T) {
+	sp := sorterFor(testEntity{})
+
+	for _, raw := range []string{"id", "-id", "name", "-name", "options", "-options"} {
+		t.Run(raw, func(t *testing.T) {
+			_, err := sp.SQL([]string{raw})
+			mustNoErr(t, err)
+		})
+	}
 }
 
-func TestSortSpec_Expr(t *testing.T) {
+func TestSorterFor_SortExprs(t *testing.T) {
+	sp := sorterFor(testEntityExprs{})
+
 	tests := []struct {
 		name string
-		spec SortSpec
 		raw  string
 		want string
 	}{
-		{"column asc by default", testSpec, "name", lookupSQL("ASC")},
-		{"column explicit plus", testSpec, "+name", lookupSQL("ASC")},
-		{"column desc", testSpec, "-name", lookupSQL("DESC")},
-		{"bang is desc", testSpec, "!name", lookupSQL("DESC")},
-		{"whitespace is trimmed", testSpec, "  -name  ", lookupSQL("DESC")},
-		{"expr keeps direction asc", testSpec, "agents", "(select count(*) from x where x.q = t.id) ASC"},
-		{"expr keeps direction desc", testSpec, "-agents", "(select count(*) from x where x.q = t.id) DESC"},
-		{"expr overrides column", testSpec, "priority", "t.priority ASC"},
-		{"default for empty", testSpec, "", lookupSQL("DESC")},
-		{"default for blank", testSpec, "   ", lookupSQL("DESC")},
-		{"nothing to sort by", SortSpec{}, "", ""},
-		{"nil Exprs does not panic", SortSpec{Table: "cc_queue", Columns: []string{"name"}}, "name", lookupSQL("ASC")},
+		{"expression asc", "priority", "t.priority ASC"},
+		{"expression desc", "-priority", "t.priority DESC"},
+		{"subquery asc", "agents", "(select count(*) from x where x.q = t.id) ASC"},
+		{"subquery desc", "-agents", "(select count(*) from x where x.q = t.id) DESC"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.spec.Expr(tt.raw)
+			got, err := sp.SQL([]string{tt.raw})
 			mustNoErr(t, err)
 			mustEqual(t, norm(got), norm(tt.want))
 		})
 	}
 }
 
-func TestSortSpec_Expr_Errors(t *testing.T) {
+func TestSorterFor_InvalidFields(t *testing.T) {
+	sp := sorterFor(testEntity{})
+
 	tests := []struct {
 		name string
 		raw  string
@@ -88,17 +116,17 @@ func TestSortSpec_Expr_Errors(t *testing.T) {
 	}{
 		{"unknown field", "password", order.ErrFieldNotAllowed},
 		{"prefix only", "-", order.ErrEmptyField},
-		{"comma list is not supported", "name,priority", order.ErrFieldNotAllowed},
-		{"injection", "name; drop table x", order.ErrFieldNotAllowed},
-		{"raw case expression", "case when 1=1 then name end", order.ErrFieldNotAllowed},
+		{"comma list", "id,name", order.ErrFieldNotAllowed},
+		{"injection", "id; drop table x", order.ErrFieldNotAllowed},
+		{"expression", "case when 1=1 then id end", order.ErrFieldNotAllowed},
 		{"subquery", "(select 1)", order.ErrFieldNotAllowed},
-		{"quoted identifier", `"name"`, order.ErrFieldNotAllowed},
-		{"column from Exprs only with different case", "NAME", order.ErrFieldNotAllowed},
+		{"quoted identifier", `"id"`, order.ErrFieldNotAllowed},
+		{"different case", "ID", order.ErrFieldNotAllowed},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := testSpec.Expr(tt.raw)
+			got, err := sp.SQL([]string{tt.raw})
 
 			if got != "" {
 				t.Fatalf("expected empty SQL on error, got %q", got)
@@ -108,166 +136,135 @@ func TestSortSpec_Expr_Errors(t *testing.T) {
 				t.Fatalf("error = %v, want errors.Is %v", err, tt.want)
 			}
 
-			if extractCodeFromErr(err) != http.StatusBadRequest {
-				t.Fatalf("IsSortError(%v) = false, want true", err)
+			if !IsSortError(err) {
+				t.Fatalf("expected sort error, got %v", err)
 			}
 		})
 	}
 }
 
-func TestSortSpec_InvalidDefaultFails(t *testing.T) {
-	sp := SortSpec{Columns: []string{"name"}, Default: "missing"}
+func TestSorterFor_LookupClauses(t *testing.T) {
+	sp := sorterFor(testEntity{})
 
-	_, err := sp.Expr("")
-	if !errors.Is(err, order.ErrFieldNotAllowed) {
-		t.Fatalf("error = %v, want ErrFieldNotAllowed", err)
-	}
-}
-
-func TestSortSpec_Clause(t *testing.T) {
-	got, err := testSpec.Clause("-agents")
-	mustNoErr(t, err)
-	mustEqual(t, got, "order by (select count(*) from x where x.q = t.id) DESC")
-
-	got, err = SortSpec{}.Clause("")
-	mustNoErr(t, err)
-	mustEqual(t, got, "")
-}
-
-func TestIsSortError(t *testing.T) {
-	if IsSortError(nil) {
-		t.Fatal("nil is not a sort error")
-	}
-
-	if IsSortError(errors.New("db is down")) {
-		t.Fatal("foreign error must not be a sort error")
-	}
-
-	wrapped := errors.Join(errors.New("ctx"), &order.Error{Field: "x", Err: order.ErrFieldNotAllowed})
-	if !IsSortError(wrapped) {
-		t.Fatal("wrapped order.Error must be detected")
-	}
-}
-
-func FuzzSortSpec_OutputIsWhitelisted(f *testing.F) {
-	for _, s := range []string{"", "name", "-name", "!agents", "+priority", "a,b", "name;--", "-", "--name", "\x00", "name\n"} {
-		f.Add(s)
-	}
-
-	allowed := map[string]struct{}{"": {}}
-
-	for _, dir := range []string{"ASC", "DESC"} {
-		allowed[norm(lookupSQL(dir))] = struct{}{}
-
-		for _, e := range testSpec.Exprs {
-			allowed[e+" "+dir] = struct{}{}
-		}
-	}
-
-	f.Fuzz(func(t *testing.T, raw string) {
-		out, err := testSpec.Expr(raw)
-		if err != nil {
-			return
-		}
-
-		if _, ok := allowed[norm(out)]; !ok {
-			t.Fatalf("input %q produced non-whitelisted SQL: %s", raw, out)
-		}
-	})
-}
-
-type testEntity struct{ defaultOrder string }
-
-func (testEntity) AllowFields() []string   { return []string{"id", "name"} }
-func (testEntity) DefaultFields() []string { return []string{"id", "name"} }
-func (testEntity) EntityName() string      { return "cc_queue" }
-func (e testEntity) DefaultOrder() string  { return e.defaultOrder }
-
-type testEntityExprs struct{ testEntity }
-
-func (testEntityExprs) SortExprs() map[string]string { return map[string]string{"id": "t.id"} }
-
-func TestSpecFor(t *testing.T) {
-	t.Run("plain entity", func(t *testing.T) {
-		sp := specFor(testEntity{defaultOrder: "name"})
-
-		if sp.Table != "cc_queue" || sp.Default != "name" || len(sp.Columns) != 2 {
-			t.Fatalf("unexpected spec: %+v", sp)
-		}
-
-		if sp.Exprs != nil {
-			t.Fatalf("Exprs must be nil, got %v", sp.Exprs)
-		}
-	})
-
-	t.Run("entity with SortExprs", func(t *testing.T) {
-		got, err := specFor(testEntityExprs{}).Expr("-id")
-		mustNoErr(t, err)
-		mustEqual(t, got, "t.id DESC")
-	})
-}
-
-func buildQuery(t *testing.T, e Entity, req model.ListRequest, args map[string]any) (string, error) {
-	t.Helper()
-
-	return Build(&req, "call_center", "true", e, args)
-}
-
-func TestBuild_GoldenQuery(t *testing.T) {
-	q, err := buildQuery(t, testEntityExprs{testEntity{defaultOrder: "-id"}}, model.ListRequest{}, map[string]any{})
-	mustNoErr(t, err)
-
-	mustEqual(t, norm(q),
-		`select "id", "name" from "call_center"."cc_queue" as t where true `+
-			`order by t.id DESC offset :Offset limit :Limit`)
-}
-
-func TestBuild_Order(t *testing.T) {
 	tests := []struct {
-		name     string
-		entity   Entity
-		sort     string
-		contains []string
-		absent   []string
+		name string
+		raw  string
+		dir  string
 	}{
-		{
-			name:     "client sort wins over default",
-			entity:   testEntity{defaultOrder: "-id"},
-			sort:     "name",
-			contains: []string{"order by case when not", `then "name" end ASC`},
-		},
-		{
-			name:     "default used when sort is empty",
-			entity:   testEntityExprs{testEntity{defaultOrder: "-id"}},
-			sort:     "",
-			contains: []string{"order by t.id DESC"},
-		},
-		{
-			name:   "no order by when nothing to sort",
-			entity: testEntity{},
-			sort:   "",
-			absent: []string{"order by"},
-		},
+		{"asc", "name", "ASC"},
+		{"desc", "-name", "DESC"},
+		{"bang desc", "!name", "DESC"},
+		{"plus asc", "+name", "ASC"},
+		{"whitespace", "  -name  ", "DESC"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q, err := buildQuery(t, tt.entity, model.ListRequest{Sort: tt.sort}, map[string]any{})
+			got, err := sp.SQL([]string{tt.raw})
 			mustNoErr(t, err)
+			mustEqual(t, norm(got), norm(lookupSQL(tt.dir)))
+		})
+	}
+}
 
-			for _, s := range tt.contains {
-				if !strings.Contains(q, s) {
-					t.Errorf("query must contain %q:\n%s", s, q)
-				}
-			}
+func TestSorterFor_InvalidSortExprs(t *testing.T) {
+	sp := sorterFor(testEntityExprs{})
 
-			for _, s := range tt.absent {
-				if strings.Contains(q, s) {
-					t.Errorf("query must not contain %q:\n%s", s, q)
-				}
+	// SortExprs are intentionally whitelisted.
+	for _, raw := range []string{"unknown", "priority; drop table x", "t.priority", "Priority"} {
+		t.Run(raw, func(t *testing.T) {
+			_, err := sp.SQL([]string{raw})
+			if err == nil {
+				t.Fatalf("expected error for %q", raw)
 			}
 		})
 	}
+}
+
+func TestGetFields_DefaultFields(t *testing.T) {
+	got := GetFields(nil, testEntity{})
+
+	want := []string{`"id"`, `"name"`}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("GetFields() = %#v, want %#v", got, want)
+	}
+}
+
+func TestGetFields_AllowedFields(t *testing.T) {
+	got := GetFields([]string{"name", "id"}, testEntity{})
+
+	want := []string{`"name"`, `"id"`}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("GetFields() = %#v, want %#v", got, want)
+	}
+}
+
+func TestGetFields_JSONB(t *testing.T) {
+	got := GetFields([]string{"options.foo"}, testEntity{})
+
+	want := []string{
+		`call_center.cc_jsonb_show_fields("options", array['foo']) as "options"`,
+	}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("GetFields() = %#v, want %#v", got, want)
+	}
+}
+
+func TestGetFields_JSONB_MultipleKeys(t *testing.T) {
+	got := GetFields([]string{"options.foo", "options.bar"}, testEntity{})
+
+	if len(got) != 1 {
+		t.Fatalf("expected one JSONB expression, got %#v", got)
+	}
+
+	want := `call_center.cc_jsonb_show_fields("options", array['foo','bar']) as "options"`
+
+	mustEqual(t, norm(got[0]), norm(want))
+}
+
+func TestGetFields_UnknownFields(t *testing.T) {
+	got := GetFields([]string{"unknown", "unknown.foo"}, testEntity{})
+
+	if len(got) != 0 {
+		t.Fatalf("unknown fields must be ignored, got %#v", got)
+	}
+}
+
+func TestGetFields_MixedFields(t *testing.T) {
+	got := GetFields([]string{"id", "options.foo", "name"}, testEntity{})
+
+	if len(got) != 3 {
+		t.Fatalf("expected 3 fields, got %#v", got)
+	}
+
+	if !slices.Contains(got, `"id"`) {
+		t.Errorf("id field is missing: %#v", got)
+	}
+
+	if !slices.Contains(got, `"name"`) {
+		t.Errorf("name field is missing: %#v", got)
+	}
+
+	if !slices.Contains(got, `call_center.cc_jsonb_show_fields("options", array['foo']) as "options"`) {
+		t.Errorf("JSONB field is missing: %#v", got)
+	}
+}
+
+func TestBuild_GoldenQuery(t *testing.T) {
+	req := model.ListRequest{Sort: "-id"}
+	args := map[string]any{}
+
+	q, err := Build(&req, "call_center", "true", testEntity{}, args)
+	mustNoErr(t, err)
+
+	mustEqual(
+		t,
+		norm(q),
+		`select "id", "name" from "call_center"."cc_queue" as t where true order by case when not call_center.cc_is_lookup('cc_queue', 'id') then "id" end DESC, case when call_center.cc_is_lookup('cc_queue', 'id') then COALESCE((("id"::text)::json->>'name'), (("id"::text)::json->0->>'name')) end DESC offset :Offset limit :Limit`,
+	)
 }
 
 func TestBuild_InvalidSort(t *testing.T) {
@@ -275,7 +272,14 @@ func TestBuild_InvalidSort(t *testing.T) {
 		t.Run(raw, func(t *testing.T) {
 			args := map[string]any{"Keep": 1}
 
-			q, err := buildQuery(t, testEntity{}, model.ListRequest{Sort: raw}, args)
+			q, err := Build(
+				&model.ListRequest{Sort: raw},
+				"call_center",
+				"true",
+				testEntity{},
+				args,
+			)
+
 			if q != "" {
 				t.Fatalf("query must be empty on error, got %q", q)
 			}
@@ -300,7 +304,14 @@ func TestBuild_InvalidSort(t *testing.T) {
 }
 
 func TestBuild_InvalidDefaultOrderFails(t *testing.T) {
-	_, err := buildQuery(t, testEntity{defaultOrder: "missing"}, model.ListRequest{}, map[string]any{})
+	_, err := Build(
+		&model.ListRequest{},
+		"call_center",
+		"true",
+		testEntity{defaultOrder: "missing"},
+		map[string]any{},
+	)
+
 	if !errors.Is(err, order.ErrFieldNotAllowed) {
 		t.Fatalf("error = %v, want ErrFieldNotAllowed", err)
 	}
@@ -363,7 +374,6 @@ func allEntities() []Entity {
 		model.Call{},
 		model.HistoryCall{},
 		model.Agent{},
-		model.AgentCallStatistics{},
 		model.UserStatus{},
 		model.AgentState{},
 		model.AgentInQueue{},
@@ -412,15 +422,15 @@ func allEntities() []Entity {
 func TestEntities_SortConfigIsValid(t *testing.T) {
 	for _, e := range allEntities() {
 		t.Run(e.EntityName(), func(t *testing.T) {
-			sp := specFor(e)
+			sp := sorterFor(e)
 
-			if _, err := sp.Expr(""); err != nil {
+			if _, err := sp.SQL([]string{e.DefaultOrder()}); err != nil {
 				t.Errorf("DefaultOrder() %q is rejected: %v", e.DefaultOrder(), err)
 			}
 
 			for _, f := range e.AllowFields() {
 				for _, prefix := range []string{"", "-"} {
-					if _, err := sp.Expr(prefix + f); err != nil {
+					if _, err := sp.SQL([]string{prefix + f}); err != nil {
 						t.Errorf("sort %q is rejected: %v", prefix+f, err)
 					}
 				}

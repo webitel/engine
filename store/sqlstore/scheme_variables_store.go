@@ -18,12 +18,11 @@ var schemeVariableColumns = []struct{ name, col string }{
 	{model.SchemeVariableFields.Value, "scheme_variable.value"},
 }
 
-var schemeVariableSorter = order.New(
-	map[string]string{
-		model.SchemeVariableFields.Id:      "scheme_variable.id",
-		model.SchemeVariableFields.Name:    "scheme_variable.name",
-		model.SchemeVariableFields.Encrypt: "scheme_variable.encrypt",
-	},
+var schemeVariableSorter = order.New(order.Columns(map[string]string{
+	model.SchemeVariableFields.Id:      "scheme_variable.id",
+	model.SchemeVariableFields.Name:    "scheme_variable.name",
+	model.SchemeVariableFields.Encrypt: "scheme_variable.encrypt",
+}),
 	order.WithDefaults(order.Field{Name: model.SchemeVariableFields.Id, Dir: order.Asc}),
 )
 

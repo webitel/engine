@@ -127,7 +127,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 	}
 	fields := GetFields(search.Fields, &model.QuickReply{})
 	parsedFields := strings.Join(fields, ", ")
-	sort, err := specFor(model.QuickReply{}).Clause(search.Sort)
+	sort, err := sorterFor(model.QuickReply{}).SQL([]string{search.Sort})
 	if err != nil {
 		return nil, model.NewBadRequestError("sqlstore.cc_quick_reply_store.search.sort", err.Error())
 	}
@@ -169,7 +169,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 		select
 			%s
 		from filtered_quick_replies_cte t
-		%s
+		order by %s
 		offset %d
 		limit %d
 	`, parsedFields, parsedFields, sort, search.ListRequest.GetOffset(), search.ListRequest.GetLimit())

@@ -8,6 +8,7 @@ import (
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
+	"github.com/webitel/webitel-go-kit/pkg/sqlkit/order"
 )
 
 type SqlRoutingSchemaStore struct {
@@ -165,14 +166,13 @@ func (s SqlRoutingSchemaStore) Delete(ctx context.Context, domainId, id int64) m
 	return nil
 }
 
-var routingSchemaTagSort = SortSpec{
-	Default: "name",
-	Exprs:   map[string]string{"name": "name"},
-}
+var routingSchemaTagSort = order.New(order.Columns(map[string]string{
+	"name": "name",
+}), order.WithDefaults(order.Field{Name: "name", Dir: order.Asc}))
 
 // todo
 func (s SqlRoutingSchemaStore) ListTags(ctx context.Context, domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, model.AppError) {
-	sort, err := routingSchemaTagSort.Clause(search.Sort)
+	sort, err := routingSchemaTagSort.SQL([]string{search.Sort})
 	if err != nil {
 		return nil, model.NewBadRequestError("sqlstore.flow_routing_scheme_store.list", err.Error())
 	}

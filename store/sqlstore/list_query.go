@@ -23,56 +23,23 @@ type Entity interface {
 	DefaultOrder() string
 }
 
-type SortSpec struct {
-	Table   string
-	Columns []string
-	Exprs   map[string]string
-	Default string
-}
+func sorterFor(e Entity) *order.Sorter {
+	entityAllowedFields := e.AllowFields()
+	allowed := make(map[string]order.ExprFunc, len(entityAllowedFields))
 
-func (sp SortSpec) Expr(raw string) (string, error) {
-	raw = cmp.Or(strings.TrimSpace(raw), strings.TrimSpace(sp.Default))
-	if raw == "" {
-		return "", nil
-	}
-
-	f, err := order.ParseField(raw)
-	if err != nil {
-		return "", err
-	}
-
-	if expr, ok := sp.Exprs[f.Name]; ok {
-		return order.Clause{Expr: expr, Dir: f.Dir}.SQL(), nil
-	}
-
-	if !slices.Contains(sp.Columns, f.Name) {
-		return "", &order.Error{Field: f.Name, Err: order.ErrFieldNotAllowed}
-	}
-
-	return lookupClauses(sp.Table, f).SQL(), nil
-}
-
-func (sp SortSpec) Clause(raw string) (string, error) {
-	s, err := sp.Expr(raw)
-	if err != nil || s == "" {
-		return "", err
-	}
-
-	return "order by " + s, nil
-}
-
-func specFor(e Entity) SortSpec {
-	sp := SortSpec{
-		Table:   e.EntityName(),
-		Columns: e.AllowFields(),
-		Default: e.DefaultOrder(),
+	for _, f := range entityAllowedFields {
+		allowed[f] = func(d order.Direction) order.Clauses {
+			return lookupClauses(e.EntityName(), order.Field{Name: f, Dir: d})
+		}
 	}
 
 	if m, ok := e.(SortExpr); ok {
-		sp.Exprs = m.SortExprs()
+		for name, expr := range m.SortExprs() {
+			allowed[name] = order.Expr(expr)
+		}
 	}
 
-	return sp
+	return order.New(allowed)
 }
 
 func GetFields(f []string, e Entity) []string {
@@ -141,7 +108,7 @@ func lookupClauses(table string, f order.Field) order.Clauses {
 func Build(req *model.ListRequest, schema string, where string, e Entity, args map[string]any) (string, error) {
 	s := GetFields(req.Fields, e)
 
-	orderBy, err := specFor(e).Clause(req.Sort)
+	orderBy, err := sorterFor(e).SQL([]string{cmp.Or(req.Sort, e.DefaultOrder())})
 	if err != nil {
 		return "", err
 	}
@@ -158,7 +125,7 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 	query := fmt.Sprintf(`select %s
 	from %s as t
 	where %s
-	%s
+	order by %s
 	offset :Offset
 	limit :Limit`, strings.Join(s, ", "), t, where, orderBy)
 

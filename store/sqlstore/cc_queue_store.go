@@ -9,6 +9,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
+	"github.com/webitel/webitel-go-kit/pkg/sqlkit/order"
 )
 
 type SqlQueueStore struct {
@@ -492,9 +493,8 @@ func (s SqlQueueStore) Delete(ctx context.Context, domainId, id int64) model.App
 
 // QueueReportGeneral TODO call_center.cc_agent_channel not unique join
 // FIXME hot fix WTEL-4333
-var queueReportGeneralSort = SortSpec{
-	Default: "-priority",
-	Exprs: map[string]string{
+var queueReportGeneralSort = order.New(order.Columns(
+	map[string]string{
 		"priority":     "q.priority",
 		"queue":        "q.name",
 		"team":         "ct.name",
@@ -515,10 +515,10 @@ var queueReportGeneralSort = SortSpec{
 		"avg_asa_sec":  "17",
 		"avg_aht_sec":  "18",
 	},
-}
+), order.WithDefaults(order.Field{Name: "priority", Dir: order.Desc}))
 
 func (s SqlQueueStore) QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError) {
-	sort, err := queueReportGeneralSort.Expr(search.Sort)
+	sort, err := queueReportGeneralSort.SQL([]string{search.Sort})
 	if err != nil {
 		return nil, model.NewBadRequestError("sqlstore.cc_queue_store.queue_report_general.sort", err.Error())
 	}
@@ -686,14 +686,11 @@ select
 	return report, nil
 }
 
-var queueTagSort = SortSpec{
-	Default: "name",
-	Exprs:   map[string]string{"name": "name"},
-}
+var queueTagSort = order.New(order.Columns(map[string]string{"name": "name"}), order.WithDefaults(order.Field{Name: "name", Dir: order.Asc}))
 
 // todo
 func (s SqlQueueStore) ListTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, model.AppError) {
-	sort, err := queueTagSort.Clause(search.Sort)
+	sort, err := queueTagSort.SQL([]string{search.Sort})
 	if err != nil {
 		return nil, model.NewBadRequestError("sqlstore.cc_queue_store.list_tags.sort", err.Error())
 	}
@@ -707,7 +704,7 @@ func (s SqlQueueStore) ListTags(ctx context.Context, domainId int64, search *mod
 )
 select *
 from tags
-%s
+order by %s
 limit :Limit
 offset :Offset`
 

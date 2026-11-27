@@ -142,13 +142,12 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 		"TeamUserID": search.TeamUserID,
 	}
 
-	originalSort := search.Sort
-	if search.TeamUserID != nil && search.Sort == "" {
-		search.Sort = "case when team_ids && array(select a.team_id from call_center.cc_agent a where a.user_id = :TeamUserID::int8 and a.team_id notnull) then 0 else 1 end asc,name asc"
-		f["TeamUserID"] = *search.TeamUserID
+	req := search.ListRequest
+	if search.TeamUserID != nil && req.Sort == "" {
+		req.Sort = "team_first"
 	}
 
-	err := s.ListQuery(ctx, &list, search.ListRequest,
+	err := s.ListQuery(ctx, &list, req,
 		`domain_id = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:TeamUserID::int8 isnull or
@@ -173,8 +172,6 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_audit_form.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
-
-	search.Sort = originalSort
 
 	return list, nil
 }

@@ -31,6 +31,7 @@ require (
 	github.com/webitel/webitel-go-kit/infra/health v0.3.0
 	github.com/webitel/webitel-go-kit/infra/otel v0.6.0
 	github.com/webitel/webitel-go-kit/pkg/hostaddr v0.1.0
+	github.com/webitel/webitel-go-kit/pkg/sqlkit v0.1.0
 	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
 	github.com/xuri/excelize/v2 v2.10.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.71.0
@@ -118,7 +119,6 @@ require (
 	github.com/webitel/crypto/encoding/jsonc v0.1.0 // indirect
 	github.com/webitel/crypto/env v0.2.0 // indirect
 	github.com/webitel/webitel-go-kit/pkg/logging v0.1.0 // indirect
-	github.com/webitel/webitel-go-kit/pkg/sqlkit v0.0.0-20261125100654-bf93e50f9f7e // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
